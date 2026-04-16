@@ -18,15 +18,14 @@ export async function uploadDocument(
       return { success: false, error: 'Database not configured' };
     }
 
-    let embedding: number[];
-    let embeddingError = null;
+    let embedding: number[] | null = null;
+    let embeddingError: string | null = null;
     
     try {
       embedding = await createEmbedding(content);
     } catch (err) {
       console.error('Embedding error:', err);
       embeddingError = String(err);
-      embedding = null;
     }
 
     const { error: docError } = await supabase
@@ -34,7 +33,7 @@ export async function uploadDocument(
       .insert({ 
         title, 
         content, 
-        embedding,
+        embedding: embedding,
         user_id: userId || null
       });
     
