@@ -1,65 +1,183 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import Link from 'next/link';
+
+export default function LandingPage() {
+  const [email, setEmail] = useState('');
+
+  const handleGetStarted = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email) {
+      window.location.href = `/login?email=${encodeURIComponent(email)}`;
+    } else {
+      window.location.href = '/login';
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen bg-[var(--bg-primary)]">
+      {/* Navigation */}
+      <nav className="h-16 border-b border-[var(--border)] flex items-center justify-between px-6 bg-[var(--bg-secondary)]/80 backdrop-blur-sm sticky top-0 z-50">
+        <Link href="/" className="text-xl font-semibold gradient-text">SupportAI</Link>
+        <div className="flex items-center gap-4">
+          <Link href="/demo" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm">Demo</Link>
+          <Link href="/pricing" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm">Pricing</Link>
+          <Link href="/login" className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-white text-sm font-medium hover:bg-[var(--accent-hover)] transition-colors">
+            Get Started
+          </Link>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="py-24 px-6 text-center">
+        <div className="max-w-4xl mx-auto">
+          <div className="inline-block px-4 py-1 rounded-full bg-[var(--accent-glow)] border border-[var(--accent-primary)]/30 text-[var(--accent-primary)] text-sm mb-6">
+            AI Support Agent for SaaS
+          </div>
+          <h2 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+            Instant Answers from Your{' '}
+            <span className="gradient-text">Knowledge Base</span>
+          </h2>
+          <p className="text-xl text-[var(--text-secondary)] mb-8 max-w-2xl mx-auto">
+            Reduce support tickets by 80%. AI that answers customer questions using your documents, PDFs, and help center content.
           </p>
+          <div className="flex gap-4 justify-center flex-col sm:flex-row">
+            <form onSubmit={handleGetStarted} className="flex gap-2 flex-wrap justify-center">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email"
+                className="w-64 px-4 py-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
+              />
+              <button type="submit" className="px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors">
+                Start Free
+              </button>
+            </form>
+            <Link href="/demo" className="px-6 py-3 rounded-xl border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors">
+              Try Demo
+            </Link>
+          </div>
+          <p className="text-[var(--text-muted)] text-sm mt-4">No credit card required • Free forever plan</p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Demo Preview - Eye-catching CTA */}
+      <section className="py-24 px-6 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a1a24 0%, #0a0a0f 100%)' }}>
+        {/* Background accent */}
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-20" style={{ background: 'radial-gradient(circle, #6366f1 0%, transparent 70%)', transform: 'translate(30%, -50%)' }}></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #818cf8 0%, transparent 70%)', transform: 'translate(-30%, 50%)' }}></div>
+        
+        <div className="max-w-4xl mx-auto relative z-10">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[var(--accent-primary)] text-white text-sm font-medium mb-4 shadow-lg shadow-[var(--accent-primary)]/30">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+              Live Demo - No Signup Required
+            </div>
+            <h3 className="text-3xl md:text-4xl font-bold text-white">
+              See the <span className="gradient-text">AI Support Agent</span> in action
+            </h3>
+            <p className="text-[var(--text-secondary)] mt-3 text-lg">Ask anything about your product • Get instant answers with citations</p>
+          </div>
+          
+          {/* Mini Chat Preview */}
+          <div className="bg-[#12121a] rounded-xl border border-[var(--accent-primary)]/30 overflow-hidden card-shadow max-w-lg mx-auto shadow-2xl shadow-[var(--accent-primary)]/10">
+            <div className="p-3 border-b border-[var(--border)] flex items-center gap-2 bg-[#0a0a0f]">
+              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              <span className="text-xs text-[var(--text-muted)] ml-2">SupportAI Demo</span>
+            </div>
+            <div className="p-4 space-y-3">
+              <div className="flex justify-start">
+                <div className="bg-[var(--ai-bubble)] rounded-xl p-3 text-sm max-w-[85%] border border-[var(--accent-primary)]/20">
+                  👋 Hi! I'm your AI support assistant. Ask me about refund policy, password reset, or how to upgrade.
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <div className="bg-[var(--user-bubble)] rounded-xl p-3 text-sm max-w-[85%]">
+                  How do I reset my password?
+                </div>
+              </div>
+              <div className="flex justify-start">
+                <div className="bg-[var(--ai-bubble)] rounded-xl p-3 text-sm max-w-[85%] border border-[var(--accent-primary)]/20">
+                  Go to <strong>Settings → Security → Reset Password</strong>. You'll receive a confirmation email to complete the change.
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="text-center mt-8">
+            <Link href="/demo" className="inline-flex items-center gap-3 px-8 py-4 rounded-xl bg-[var(--accent-primary)] text-white font-semibold text-lg hover:bg-[var(--accent-hover)] transition-all transform hover:scale-105 shadow-lg shadow-[var(--accent-primary)]/40">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              </svg>
+              Try the Full Demo
+            </Link>
+            <p className="text-[var(--text-muted)] text-sm mt-3">Takes 30 seconds • No account needed</p>
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* Features */}
+      <section className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          <h3 className="text-3xl font-semibold text-center mb-16">How It Works</h3>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="p-6 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)]">
+              <div className="w-12 h-12 rounded-lg bg-[var(--accent-glow)] flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[var(--accent-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <h4 className="text-lg font-semibold mb-2">1. Upload Documents</h4>
+              <p className="text-[var(--text-secondary)] text-sm">Paste text or upload PDFs. We automatically chunk and embed your content.</p>
+            </div>
+            <div className="p-6 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)]">
+              <div className="w-12 h-12 rounded-lg bg-[var(--accent-glow)] flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[var(--accent-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h4 className="text-lg font-semibold mb-2">2. AI Searches</h4>
+              <p className="text-[var(--text-secondary)] text-sm">When users ask questions, our AI finds the most relevant content using vector search.</p>
+            </div>
+            <div className="p-6 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)]">
+              <div className="w-12 h-12 rounded-lg bg-[var(--accent-glow)] flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[var(--accent-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+              </div>
+              <h4 className="text-lg font-semibold mb-2">3. Get Answers</h4>
+              <p className="text-[var(--text-secondary)] text-sm">GPT-4o generates accurate answers with citations from your documents.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-24 px-6 bg-[var(--bg-secondary)] text-center">
+        <div className="max-w-2xl mx-auto">
+          <h3 className="text-3xl font-semibold mb-4">Ready to reduce support tickets?</h3>
+          <p className="text-[var(--text-secondary)] mb-8">Start free, no credit card required. Set up in minutes.</p>
+          <Link href="/login" className="inline-block px-8 py-4 rounded-xl bg-[var(--accent-primary)] text-white font-medium text-lg hover:bg-[var(--accent-hover)] transition-colors">
+            Get Started Free
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-8 px-6 border-t border-[var(--border)]">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-[var(--text-muted)] text-sm">© 2026 SupportAI. All rights reserved.</p>
+          <div className="flex gap-6 text-sm text-[var(--text-muted)]">
+            <Link href="/privacy" className="hover:text-[var(--text-primary)]">Privacy</Link>
+            <Link href="/terms" className="hover:text-[var(--text-primary)]">Terms</Link>
+            <Link href="/contact" className="hover:text-[var(--text-primary)]">Contact</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
