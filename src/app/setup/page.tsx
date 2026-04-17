@@ -1,32 +1,57 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Sidebar from '@/components/Sidebar';
 import SupportAILogo from '@/components/SupportAILogo';
+
+interface StoredUser {
+  id: string;
+  email: string;
+  full_name: string | null;
+  plan: string;
+}
 
 export default function SetupPage() {
   const [companyName, setCompanyName] = useState('My Company');
   const [primaryColor, setPrimaryColor] = useState('#6366f1');
   const [widgetPosition, setWidgetPosition] = useState('bottom-right');
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('supportai_company');
-    const color = localStorage.getItem('supportai_color');
-    const position = localStorage.getItem('supportai_position');
-    if (saved) setCompanyName(saved);
-    if (color) setPrimaryColor(color);
-    if (position) setWidgetPosition(position);
+    // Load settings from localStorage
+    const savedName = localStorage.getItem('supportai_company');
+    const savedColor = localStorage.getItem('supportai_color');
+    const savedPosition = localStorage.getItem('supportai_position');
+    if (savedName) setCompanyName(savedName);
+    if (savedColor) setPrimaryColor(savedColor);
+    if (savedPosition) setWidgetPosition(savedPosition);
+
+    // Try to get logged-in user from localStorage
+    try {
+      const userJson = localStorage.getItem('supportai_current_user');
+      if (userJson) {
+        const user: StoredUser = JSON.parse(userJson);
+        const nameFromProfile = user.full_name || user.email?.split('@')[0] || 'My Company';
+        setCompanyName(nameFromProfile);
+        localStorage.setItem('supportai_company', nameFromProfile);
+      }
+    } catch (error) {
+      console.error('Error loading user from localStorage:', error);
+    }
+    
+    setMounted(true);
   }, []);
 
-  const widgetCode = `<!-- SupportAI Widget -->
-<script src="${typeof window !== 'undefined' ? window.location.origin : ''}/widget.js"></script>
-
-<!-- Or use iframe -->
-<iframe src="${typeof window !== 'undefined' ? window.location.origin : ''}/embed" style="border:none;position:fixed;${widgetPosition.includes('left') ? 'left' : 'right'}:20px;bottom:20px;width:380px;height:500px;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.3);"></iframe>`;
+  const widgetCode = useMemo(() => {
+    if (!mounted) return '';
+    const origin = window.location.origin;
+    return `<script src="${origin}/widget.js"></script>`;
+  }, [mounted]);
 
   async function copyCode() {
+    if (!widgetCode) return;
     await navigator.clipboard.writeText(widgetCode);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -62,18 +87,22 @@ export default function SetupPage() {
             <h3 className="text-lg font-semibold">Embed Code</h3>
             <button
               onClick={copyCode}
-              className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-white text-sm hover:bg-[var(--accent-hover)] transition-colors"
+              disabled={!mounted}
+              className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-white text-sm hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {copied ? 'Copied!' : 'Copy Code'}
             </button>
           </div>
-          <pre className="p-4 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)] overflow-x-auto text-sm font-mono whitespace-pre-wrap">
+          {mounted ? (
+            <pre className="p-4 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)] overflow-x-auto text-sm font-mono whitespace-pre-wrap">
 {`<!-- SupportAI Widget -->
-${widgetCode}
-
-<!-- Or use this iframe -->
-<!-- <iframe src="https://supportai.com/embed?company=${encodeURIComponent(companyName)}&color=${encodeURIComponent(primaryColor)}" style="border:none;position:fixed;bottom:20px;right:20px;width:400px;height:500px;"></iframe> -->`}
-          </pre>
+${widgetCode}`}
+            </pre>
+          ) : (
+            <div className="p-4 rounded-lg bg-[var(--bg-primary)] border border-[var(--border)] h-20 flex items-center justify-center text-[var(--text-muted)]">
+              Loading embed code...
+            </div>
+          )}
         </div>
 
         {/* Instructions */}

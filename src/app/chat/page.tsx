@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { uploadDocument, getDocumentList, deleteDocument, sendMessage, Message } from '../actions';
+import { extractPdfTextClient } from '@/lib/pdf-client';
 import Layout from '@/components/Sidebar';
 
 interface Document {
@@ -14,6 +15,15 @@ interface Document {
   created_at: string;
 }
 
+interface Folder {
+  id: string;
+  name: string;
+  color: string;
+}
+
+const FOLDERS_KEY = 'supportai_folders';
+const DOC_FOLDER_MAP_KEY = 'supportai_doc_folders';
+
 export default function ChatPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [messages, setMessages] = useState<Message[]>([
@@ -21,13 +31,38 @@ export default function ChatPage() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [showAddDoc, setShowAddDoc] = useState(false);
-  const [docTitle, setDocTitle] = useState('');
-  const [docContent, setDocContent] = useState('');
-  const [docError, setDocError] = useState('');
-  const [docLoading, setDocLoading] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [fileName, setFileName] = useState('');
+  const [error, setError] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [docFolderMap, setDocFolderMap] = useState<Record<string, string>>({});
+  const [uploadFolder, setUploadFolder] = useState<string>('none');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Load folders and document mappings from localStorage
+  useEffect(() => {
+    const savedFolders = localStorage.getItem(FOLDERS_KEY);
+    const savedMap = localStorage.getItem(DOC_FOLDER_MAP_KEY);
+    if (savedFolders) {
+      setFolders(JSON.parse(savedFolders));
+    } else {
+      const defaults: Folder[] = [
+        { id: 'general', name: 'General', color: '#6366f1' },
+        { id: 'faq', name: 'FAQs', color: '#22c55e' },
+        { id: 'policies', name: 'Policies', color: '#f59e0b' },
+      ];
+      setFolders(defaults);
+      localStorage.setItem(FOLDERS_KEY, JSON.stringify(defaults));
+    }
+    if (savedMap) {
+      setDocFolderMap(JSON.parse(savedMap));
+    }
+  }, []);
 
   useEffect(() => {
     loadDocuments();
@@ -36,6 +71,45 @@ export default function ChatPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  function saveFolders(newFolders: Folder[]) {
+    setFolders(newFolders);
+    localStorage.setItem(FOLDERS_KEY, JSON.stringify(newFolders));
+  }
+
+  function saveDocFolderMap(map: Record<string, string>) {
+    setDocFolderMap(map);
+    localStorage.setItem(DOC_FOLDER_MAP_KEY, JSON.stringify(map));
+  }
+
+  function createFolder(name: string, color: string) {
+    const newFolder: Folder = {
+      id: `folder-${Date.now()}`,
+      name,
+      color
+    };
+    saveFolders([...folders, newFolder]);
+    setShowNewFolderModal(false);
+    setNewFolderName('');
+  }
+
+  function deleteFolder(folderId: string) {
+    if (folderId === 'general') return;
+    const newMap = { ...docFolderMap };
+    delete newMap[folderId];
+    saveDocFolderMap(newMap);
+    saveFolders(folders.filter(f => f.id !== folderId));
+  }
+
+  function assignToFolder(docId: string, folderId: string | null) {
+    const newMap = { ...docFolderMap };
+    if (folderId === null || folderId === 'none') {
+      delete newMap[docId];
+    } else {
+      newMap[docId] = folderId;
+    }
+    saveDocFolderMap(newMap);
+  }
 
   async function loadDocuments() {
     const docs = await getDocumentList();
@@ -77,31 +151,52 @@ export default function ChatPage() {
     setIsLoading(false);
   }
 
-  async function handleAddDocument() {
-    if (!docTitle.trim() || !docContent.trim()) {
-      setDocError('Please fill in both title and content');
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setFileName(file.name);
+    setTitle(file.name.replace(/\.[^/.]+$/, ''));
+    
+    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      const text = await extractPdfTextClient(file);
+      setContent(text);
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => setContent(e.target?.result as string || '');
+      reader.readAsText(file);
+    }
+  }
+
+  async function handleUpload() {
+    if (!title.trim() || !content.trim()) {
+      setError('Please provide both title and content');
       return;
     }
     
-    setDocLoading(true);
-    setDocError('');
+    setIsUploading(true);
+    setError('');
     
     try {
-      const result = await uploadDocument(docContent.trim(), docTitle.trim());
-      
-      if (result.success) {
-        setShowAddDoc(false);
-        setDocTitle('');
-        setDocContent('');
+      const result = await uploadDocument(content, title);
+      if (result.success && result.id) {
+        if (uploadFolder && uploadFolder !== 'none') {
+          assignToFolder(result.id, uploadFolder);
+        }
+        setTitle('');
+        setContent('');
+        setFileName('');
+        setUploadFolder('none');
+        setShowUploadModal(false);
         loadDocuments();
       } else {
-        setDocError(result.error || 'Failed to upload document');
+        setError(result.error || 'Upload failed');
       }
-    } catch (error) {
-      setDocError('Failed to upload document');
+    } catch (err) {
+      setError('Upload failed');
     }
     
-    setDocLoading(false);
+    setIsUploading(false);
   }
 
   async function handleDeleteDocument(id: string) {
@@ -116,6 +211,9 @@ export default function ChatPage() {
     }
   }
 
+  const [showNewFolderModal, setShowNewFolderModal] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+
   return (
     <Layout>
     <div className="flex min-h-screen">
@@ -128,44 +226,65 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto p-2">
           {documents.length === 0 ? (
             <p className="text-[var(--text-muted)] text-sm p-4 text-center">
-              No documents yet. Add some to get started.
+              No documents yet. Upload your first document.
             </p>
           ) : (
             <ul className="space-y-2">
-              {documents.map((doc) => (
-                <li 
-                  key={doc.id}
-                  className="group p-3 rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--border)] transition-colors cursor-pointer"
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{doc.title}</p>
-                      <p className="text-xs text-[var(--text-muted)] mt-1">
-                        {new Date(doc.created_at).toLocaleDateString()}
-                      </p>
+              {documents.map((doc) => {
+                const folderId = docFolderMap[doc.id];
+                const folder = folders.find(f => f.id === folderId);
+                return (
+                  <li 
+                    key={doc.id}
+                    className="group p-3 rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--border)] transition-colors cursor-pointer"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                          <p className="text-sm font-medium truncate">{doc.title}</p>
+                          {folder && (
+                            <span 
+                              className="px-1 py-0.5 rounded text-[10px] text-white"
+                              style={{ backgroundColor: folder.color }}
+                            >
+                              {folder.name}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[var(--text-muted)] mt-1">
+                          {new Date(doc.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteDocument(doc.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-red-500 p-1 rounded transition-all"
+                        title="Delete document"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                     </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteDocument(doc.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 text-[var(--error)] hover:text-[var(--error)] p-1 rounded transition-all"
-                      title="Delete document"
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
         
         <div className="p-3 border-t border-[var(--border)]">
           <button
-            onClick={() => setShowAddDoc(true)}
+            onClick={() => {
+              setTitle('');
+              setContent('');
+              setFileName('');
+              setError('');
+              setUploadFolder('none');
+              setShowUploadModal(true);
+            }}
             className="w-full py-2 px-4 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -176,60 +295,208 @@ export default function ChatPage() {
         </div>
       </aside>
 
-      {/* Add Document Modal */}
-      {showAddDoc && (
+      {/* Upload Document Modal */}
+      {showUploadModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--bg-secondary)] rounded-xl w-full max-w-lg card-shadow animate-fade-in">
-            <div className="p-4 border-b border-[var(--border)] flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Add Document</h3>
+          <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-[var(--bg-secondary)] border-b border-[var(--border)] p-4 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Add Document</h2>
               <button
-                onClick={() => setShowAddDoc(false)}
-                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                onClick={() => {
+                  setShowUploadModal(false);
+                  setTitle('');
+                  setContent('');
+                  setFileName('');
+                  setUploadFolder('none');
+                  setError('');
+                }}
+                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
-            <div className="p-4 space-y-4">
+
+            <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-1">Title</label>
+                <label className="block text-sm text-[var(--text-secondary)] mb-2">Folder</label>
+                <select
+                  value={uploadFolder}
+                  onChange={(e) => setUploadFolder(e.target.value)}
+                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
+                >
+                  <option value="none">No Folder</option>
+                  {folders.map(folder => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--text-secondary)] mb-2">Title</label>
                 <input
                   type="text"
-                  value={docTitle}
-                  onChange={(e) => setDocTitle(e.target.value)}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   placeholder="Document title"
                   className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
                 />
               </div>
+
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-1">Content</label>
+                <label className="block text-sm text-[var(--text-secondary)] mb-2">Content</label>
                 <textarea
-                  value={docContent}
-                  onChange={(e) => setDocContent(e.target.value)}
-                  placeholder="Paste your document text here..."
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Paste text content here..."
                   rows={8}
-                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors resize-none"
+                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors resize-none font-mono text-sm"
                 />
+                <p className="text-xs text-[var(--text-muted)] mt-1">
+                  {content.length} characters
+                </p>
               </div>
-              {docError && (
-                <p className="text-[var(--error)] text-sm">{docError}</p>
+
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-[var(--border)]"></div>
+                <span className="text-[var(--text-muted)] text-sm">or</span>
+                <div className="flex-1 h-px bg-[var(--border)]"></div>
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--text-secondary)] mb-2">Upload File</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt,.md,.json,.html,.css,.js,.ts,.pdf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full p-4 rounded-lg border-2 border-dashed border-[var(--border)] hover:border-[var(--accent-primary)] transition-colors text-center cursor-pointer"
+                >
+                  {fileName ? (
+                    <span className="text-[var(--accent-primary)]">{fileName}</span>
+                  ) : (
+                    <span className="text-[var(--text-muted)]">
+                      Click to upload .txt, .md, .pdf, .json, .html, .css, .js, .ts files
+                    </span>
+                  )}
+                </button>
+                <p className="text-xs text-[var(--text-muted)] mt-2">
+                  PDF files will have text extracted automatically.
+                </p>
+              </div>
+
+              {error && (
+                <p className="text-red-500 text-sm">{error}</p>
               )}
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleUpload}
+                  disabled={isUploading || !title.trim() || !content.trim()}
+                  className="flex-1 py-3 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
+                >
+                  {isUploading ? 'Uploading...' : 'Upload Document'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowUploadModal(false);
+                    setTitle('');
+                    setContent('');
+                    setFileName('');
+                    setUploadFolder('none');
+                    setError('');
+                  }}
+                  className="px-6 py-3 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-            <div className="p-4 border-t border-[var(--border)] flex justify-end gap-2">
+          </div>
+        </div>
+      )}
+
+      {/* New Folder Modal */}
+      {showNewFolderModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] w-full max-w-md">
+            <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Manage Folders</h2>
               <button
-                onClick={() => setShowAddDoc(false)}
-                className="py-2 px-4 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+                onClick={() => {
+                  setShowNewFolderModal(false);
+                  setNewFolderName('');
+                }}
+                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
-                Cancel
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-              <button
-                onClick={handleAddDocument}
-                disabled={docLoading}
-                className="py-2 px-4 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
-              >
-                {docLoading ? 'Uploading...' : 'Upload'}
-              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div className="space-y-2">
+                <label className="block text-sm text-[var(--text-secondary)]">Create New Folder</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    placeholder="Folder name"
+                    className="flex-1 p-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
+                    autoFocus
+                  />
+                  <button
+                    onClick={() => createFolder(newFolderName, '#6366f1')}
+                    disabled={!newFolderName.trim()}
+                    className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm text-[var(--text-secondary)]">Existing Folders</label>
+                <div className="space-y-1">
+                  {folders.map((folder) => (
+                    <div
+                      key={folder.id}
+                      className="flex items-center justify-between p-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)]"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: folder.color }}
+                        />
+                        <span className="text-sm">{folder.name}</span>
+                        {folder.id === 'general' && (
+                          <span className="text-xs text-[var(--text-muted)]">(default)</span>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => deleteFolder(folder.id)}
+                        disabled={folder.id === 'general'}
+                        className="p-1 text-[var(--text-muted)] hover:text-red-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        title={folder.id === 'general' ? 'Cannot delete default folder' : 'Delete folder'}
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -243,14 +510,12 @@ export default function ChatPage() {
             <Link href="/admin" className="text-xl font-semibold gradient-text">SupportAI</Link>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowAddDoc(true)}
-              className="md:hidden p-2 rounded-lg bg-[var(--accent-primary)] text-white"
+            <a
+              href="/upload"
+              className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-            </button>
+              Manage Knowledge Base
+            </a>
           </div>
         </header>
 

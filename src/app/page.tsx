@@ -17,6 +17,15 @@ export default function LandingPage() {
     }
   };
 
+  const handleGetEmbedCode = () => {
+    const user = localStorage.getItem('supportai_current_user');
+    if (user) {
+      window.location.href = '/setup';
+    } else {
+      window.location.href = '/login';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col">
       <Header />
@@ -182,9 +191,12 @@ export default function LandingPage() {
           </div>
           
           <div className="mt-8 text-center">
-            <Link href="/setup" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors">
+            <button 
+              onClick={handleGetEmbedCode}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors"
+            >
               Get Embed Code
-            </Link>
+            </button>
           </div>
         </div>
       </section>

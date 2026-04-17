@@ -8,7 +8,7 @@ export async function uploadDocument(
   content: string,
   title: string,
   userId?: string
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; id?: string }> {
   try {
     if (!content.trim()) {
       return { success: false, error: 'Content cannot be empty' };
@@ -28,23 +28,21 @@ export async function uploadDocument(
       embeddingError = String(err);
     }
 
-    const { error: docError } = await supabase
+    const { data, error: docError } = await supabase
       .from('documents')
       .insert({ 
         title, 
         content, 
         embedding: embedding,
         user_id: userId || null
-      });
-    
-    if (embeddingError && docError) {
-      return { success: false, error: 'Document saved but embedding failed: ' + embeddingError };
-    }
+      })
+      .select()
+      .single();
     
     if (docError) throw docError;
-
+    
     revalidatePath('/');
-    return { success: true };
+    return { success: true, id: data.id };
   } catch (error) {
     console.error('Error uploading document:', error);
     return { success: false, error: 'Failed to upload document' };
@@ -68,6 +66,59 @@ export async function deleteDocument(id: string): Promise<{ success: boolean; er
   } catch (error) {
     console.error('Error deleting document:', error);
     return { success: false, error: 'Failed to delete document' };
+  }
+}
+
+export async function updateDocument(
+  id: string,
+  title: string,
+  content: string,
+  userId?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!content.trim()) {
+      return { success: false, error: 'Content cannot be empty' };
+    }
+
+    if (!supabase) {
+      return { success: false, error: 'Database not configured' };
+    }
+
+    // First delete the old embedding
+    await deleteDoc(id);
+
+    // Create new embedding
+    let embedding: number[] | null = null;
+    let embeddingError: string | null = null;
+    
+    try {
+      embedding = await createEmbedding(content);
+    } catch (err) {
+      console.error('Embedding error:', err);
+      embeddingError = String(err);
+    }
+
+    // Insert updated document with new embedding
+    const { error: docError } = await supabase
+      .from('documents')
+      .insert({ 
+        title, 
+        content, 
+        embedding: embedding,
+        user_id: userId || null
+      });
+    
+    if (embeddingError && docError) {
+      return { success: false, error: 'Document saved but embedding failed: ' + embeddingError };
+    }
+    
+    if (docError) throw docError;
+
+    revalidatePath('/');
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating document:', error);
+    return { success: false, error: 'Failed to update document' };
   }
 }
 
