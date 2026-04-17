@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Header from '@/components/Header';
 import { sendMessage, Message } from '../actions';
 
 const DEMO_KNOWLEDGE = [
@@ -69,19 +70,9 @@ export default function DemoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
-      <nav className="h-16 border-b border-[var(--border)] flex items-center justify-between px-6 bg-[var(--bg-secondary)]/80 backdrop-blur-sm sticky top-0 z-50">
-        <Link href="/" className="text-xl font-semibold gradient-text">SupportAI</Link>
-        <div className="flex items-center gap-4">
-          <Link href="/demo" className="text-[var(--accent-primary)] text-sm">Demo</Link>
-          <Link href="/pricing" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm">Pricing</Link>
-          <Link href="/login" className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-white text-sm font-medium hover:bg-[var(--accent-hover)] transition-colors">
-            Get Started
-          </Link>
-        </div>
-      </nav>
-
-      <div className="max-w-2xl mx-auto p-6">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col">
+      <Header />
+      <div className="max-w-2xl mx-auto p-6 flex-1">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Live Demo</h1>
           <p className="text-[var(--text-secondary)]">Test the AI support agent without signing up</p>

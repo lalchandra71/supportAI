@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import SupportAILogo from '@/components/SupportAILogo';
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -43,7 +44,10 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-[var(--bg-primary)]">
       <aside className="w-64 bg-[var(--bg-secondary)] border-r border-[var(--border)] flex flex-col fixed h-screen">
         <div className="p-4 border-b border-[var(--border)]">
-          <Link href="/admin" className="text-xl font-semibold gradient-text">SupportAI</Link>
+          <Link href="/admin" className="flex items-center gap-2">
+            <SupportAILogo size={32} showText={false} />
+            <span className="text-xl font-semibold gradient-text">SupportAI</span>
+          </Link>
         </div>
         
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">

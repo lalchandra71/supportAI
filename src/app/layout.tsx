@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SupportAI - AI-Powered Support System",
   description: "An AI-powered support system using RAG to answer your questions",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Header from '@/components/Header';
 import { signUp, signIn } from '../actions';
 
 function LoginForm() {
@@ -48,12 +49,15 @@ function LoginForm() {
       setError('An error occurred. Please try again.');
     }
     
+
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col">
+      <Header />
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-md">
         <Link href="/" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-6 inline-block">
           ← Back to home
         </Link>
@@ -129,6 +133,7 @@ function LoginForm() {
           After signing up, you'll have access to Dashboard, Upload, Chat, and Settings
         </p>
       </div>
+    </div>
     </div>
   );
 }

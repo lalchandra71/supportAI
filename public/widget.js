@@ -49,7 +49,6 @@
         .sa-toggle svg {
           width: 28px;
           height: 28px;
-          fill: white;
         }
         .sa-chat {
           position: absolute;
@@ -78,11 +77,25 @@
           align-items: center;
           gap: 12px;
         }
+        .sa-header-icon {
+          width: 28px;
+          height: 28px;
+          flex-shrink: 0;
+        }
+        .sa-header-icon svg {
+          width: 100%;
+          height: 100%;
+        }
         .sa-header-dot {
           width: 10px;
           height: 10px;
           border-radius: 50%;
           background: #22c55e;
+          flex-shrink: 0;
+        }
+        .sa-header-icon svg {
+          width: 100%;
+          height: 100%;
         }
         .sa-header-title {
           font-weight: 600;
@@ -208,10 +221,42 @@
         }
       </style>
       <button class="sa-toggle" aria-label="Open chat">
-        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="toggle-logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#6366f1" />
+              <stop offset="100%" stopColor="#818cf8" />
+            </linearGradient>
+          </defs>
+          <!-- Chat bubble with sparkle (logo) -->
+          <path d="M8 8C8 8 8 14 8 18.5C8 22.5 10 25.5 13 25.5C13 25.5 17.5 27 17.5 27L32 32V18C32 8.5 21 4 13 4C8.5 4 5 6.5 4.5 10L8 8Z" fill="url(#toggle-logo-gradient)"/>
+          <!-- Sparkle stars -->
+          <g fill="#ffffff">
+            <path d="M20 13L20.5 15L22 15.5L21 17L21.5 19L20 18L18.5 19L19 17L18 15.5L19.5 15L20 13Z"/>
+            <path d="M25 14L25.5 16L27 16.5L26 18.5L26.5 20.5L25 19.5L23.5 20.5L24 18.5L23 16.5L24.5 16L25 14Z" opacity="0.7"/>
+            <path d="M15 14L15.5 16L17 16.5L16 18.5L16.5 20.5L15 19.5L13.5 20.5L14 18.5L13 16.5L14.5 16L15 14Z" opacity="0.7"/>
+          </g>
+        </svg>
       </button>
       <div class="sa-chat">
         <div class="sa-header">
+          <div class="sa-header-icon">
+            <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="widget-logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#6366f1" />
+                  <stop offset="100%" stopColor="#818cf8" />
+                </linearGradient>
+              </defs>
+              <!-- Chat bubble with sparkle -->
+              <path d="M8 8C8 8 8 14 8 18.5C8 22.5 10 25.5 13 25.5C13 25.5 17.5 27 17.5 27L32 32V18C32 8.5 21 4 13 4C8.5 4 5 6.5 4.5 10L8 8Z" fill="url(#widget-logo-gradient)"/>
+              <!-- Sparkle star -->
+              <g fill="#ffffff">
+                <path d="M20 13L20.5 15L22 15.5L21 17L21.5 19L20 18L18.5 19L19 17L18 15.5L19.5 15L20 13Z" />
+                <path d="M25 14L25.5 16L27 16.5L26 18.5L26.5 20.5L25 19.5L23.5 20.5L24 18.5L23 16.5L24.5 16L25 14Z" opacity="0.7"/>
+              </g>
+            </svg>
+          </div>
           <div class="sa-header-dot"></div>
           <span class="sa-header-title">SupportAI</span>
         </div>

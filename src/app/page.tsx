@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import SupportAILogo from '@/components/SupportAILogo';
+import Header from '@/components/Header';
 
 export default function LandingPage() {
   const [email, setEmail] = useState('');
@@ -16,22 +18,15 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
-      {/* Navigation */}
-      <nav className="h-16 border-b border-[var(--border)] flex items-center justify-between px-6 bg-[var(--bg-secondary)]/80 backdrop-blur-sm sticky top-0 z-50">
-        <Link href="/" className="text-xl font-semibold gradient-text">SupportAI</Link>
-        <div className="flex items-center gap-4">
-          <Link href="/demo" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm">Demo</Link>
-          <Link href="/pricing" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm">Pricing</Link>
-          <Link href="/login" className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-white text-sm font-medium hover:bg-[var(--accent-hover)] transition-colors">
-            Get Started
-          </Link>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col">
+      <Header />
 
       {/* Hero */}
       <section className="py-24 px-6 text-center">
         <div className="max-w-4xl mx-auto">
+          <div className="flex justify-center mb-8">
+            <SupportAILogo size={80} />
+          </div>
           <div className="inline-block px-4 py-1 rounded-full bg-[var(--accent-glow)] border border-[var(--accent-primary)]/30 text-[var(--accent-primary)] text-sm mb-6">
             AI Support Agent for SaaS
           </div>
@@ -42,24 +37,24 @@ export default function LandingPage() {
           <p className="text-xl text-[var(--text-secondary)] mb-8 max-w-2xl mx-auto">
             Reduce support tickets by 80%. AI that answers customer questions using your documents, PDFs, and help center content.
           </p>
-          <div className="flex gap-4 justify-center flex-col sm:flex-row">
-            <form onSubmit={handleGetStarted} className="flex gap-2 flex-wrap justify-center">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="w-64 px-4 py-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
-              />
-              <button type="submit" className="px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors">
-                Start Free
-              </button>
-            </form>
-            <Link href="/demo" className="px-6 py-3 rounded-xl border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors">
-              Try Demo
-            </Link>
-          </div>
-          <p className="text-[var(--text-muted)] text-sm mt-4">No credit card required • Free forever plan</p>
+           <div className="flex gap-4 justify-center flex-col sm:flex-row">
+             <form onSubmit={handleGetStarted} className="flex gap-2 flex-wrap justify-center">
+               <input
+                 type="email"
+                 value={email}
+                 onChange={(e) => setEmail(e.target.value)}
+                 placeholder="Enter your email"
+                 className="w-64 px-4 py-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border)] text-[var(--text-primary)] outline-none focus:border-[var(--accent-primary)]"
+               />
+               <button type="submit" className="px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors">
+                 Get Started
+               </button>
+             </form>
+             <Link href="/demo" className="px-6 py-3 rounded-xl border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors">
+               Try Demo
+             </Link>
+           </div>
+           <p className="text-[var(--text-muted)] text-sm mt-4">No credit card required • 14-day free trial</p>
         </div>
       </section>
 
@@ -160,10 +155,37 @@ export default function LandingPage() {
       <section className="py-24 px-6 bg-[var(--bg-secondary)] text-center">
         <div className="max-w-2xl mx-auto">
           <h3 className="text-3xl font-semibold mb-4">Ready to reduce support tickets?</h3>
-          <p className="text-[var(--text-secondary)] mb-8">Start free, no credit card required. Set up in minutes.</p>
+          <p className="text-[var(--text-secondary)] mb-8">Start with a 14-day free trial. No credit card required.</p>
           <Link href="/login" className="inline-block px-8 py-4 rounded-xl bg-[var(--accent-primary)] text-white font-medium text-lg hover:bg-[var(--accent-hover)] transition-colors">
-            Get Started Free
+            Get Started
           </Link>
+        </div>
+       </section>
+
+      {/* Embed Preview */}
+      <section className="py-24 px-6 bg-[var(--bg-secondary)]">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-semibold mb-4">Embed on Any Website</h3>
+            <p className="text-[var(--text-secondary)] max-w-2xl mx-auto">
+              Add a single line of code to your site. The SupportAI widget appears as a floating chat button in the bottom-right corner, ready to assist your visitors.
+            </p>
+          </div>
+          
+          {/* Iframe showing widget on example site */}
+          <div className="relative rounded-xl overflow-hidden border border-[var(--border)] h-[600px]">
+            <iframe 
+              src="/embed-example.html"
+              className="w-full h-full border-none"
+              title="SupportAI widget embedded example"
+            />
+          </div>
+          
+          <div className="mt-8 text-center">
+            <Link href="/setup" className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors">
+              Get Embed Code
+            </Link>
+          </div>
         </div>
       </section>
 

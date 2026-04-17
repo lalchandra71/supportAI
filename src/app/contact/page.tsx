@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Header from '@/components/Header';
 
 export default function ContactPage() {
   const [name, setName] = useState('');
@@ -16,19 +17,9 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary)]">
-      <nav className="h-16 border-b border-[var(--border)] flex items-center justify-between px-6 bg-[var(--bg-secondary)]/80 backdrop-blur-sm sticky top-0 z-50">
-        <Link href="/" className="text-xl font-semibold gradient-text">SupportAI</Link>
-        <div className="flex items-center gap-4">
-          <Link href="/" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm">Home</Link>
-          <Link href="/pricing" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm">Pricing</Link>
-          <Link href="/login" className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-white text-sm font-medium hover:bg-[var(--accent-hover)] transition-colors">
-            Get Started
-          </Link>
-        </div>
-      </nav>
-
-      <main className="max-w-3xl mx-auto p-6 py-12">
+    <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col">
+      <Header />
+      <main className="max-w-3xl mx-auto p-6 py-12 flex-1">
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold mb-4">Get in Touch</h1>
           <p className="text-[var(--text-secondary)]">Have questions? We'd love to hear from you.</p>
