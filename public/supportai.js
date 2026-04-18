@@ -3,9 +3,14 @@
 
   var WIDGET_ID = 'supportai-widget';
   var DEFAULT_SETTINGS = {
-    company_name: 'SupportAI',
+    company_name: 'Demo',
     primary_color: '#6366f1',
-    message_text_color: '#ffffff',
+    header_color: '#12121a',
+    widget_body: '#0a0a0f',
+    user_bgcolor: '#1e1b4b',
+    ai_bgcolor: '#27272a',
+    message_text_color: '#f4f4f5',
+    send_icon_color: '#6366f1',
     logo_color: '#ffffff',
     position: 'bottom-right'
   };
@@ -17,6 +22,22 @@
     var g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + percent));
     var b = Math.max(0, Math.min(255, (num & 0x0000FF) + percent));
     return '#' + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+  }
+
+  function getHeaderColor() {
+    return settings.header_color || '#0a0a0f';
+  }
+
+  function getWidgetCircleColor() {
+    return settings.primary_color || '#6366f1';
+  }
+
+  function getUserBgColor() {
+    return settings.user_bgcolor || adjustBrightness(settings.primary_color, -30);
+  }
+
+  function getAiBgColor() {
+    return settings.ai_bgcolor || 'rgba(255,255,255,0.1)';
   }
 
   function init() {
@@ -70,7 +91,7 @@
         'width: 60px;' +
         'height: 60px;' +
         'border-radius: 50%;' +
-        'background: ' + settings.primary_color + ';' +
+        'background: ' + getWidgetCircleColor() + ';' +
         'border: none;' +
         'cursor: pointer;' +
         'box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);' +
@@ -92,7 +113,7 @@
         'width: 380px;' +
         'height: 500px;' +
         'max-height: calc(100vh - 100px);' +
-        'background: ' + settings.primary_color + ';' +
+        'background: ' + getHeaderColor() + ';' +
         'border-radius: 16px;' +
         'box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);' +
         'display: none;' +
@@ -105,7 +126,7 @@
       '}' +
       '.sa-header {' +
         'padding: 16px;' +
-        'background: ' + adjustBrightness(settings.primary_color, -30) + ';' +
+        'background: ' + getHeaderColor() + ';' +
         'border-bottom: 1px solid rgba(0,0,0,0.1);' +
         'display: flex;' +
         'align-items: center;' +
@@ -134,17 +155,17 @@
       '}' +
       '.sa-message-user {' +
         'align-self: flex-end;' +
-        'background: ' + adjustBrightness(settings.primary_color, -30) + ';' +
+        'background: ' + getUserBgColor() + ';' +
         'color: ' + settings.message_text_color + ';' +
       '}' +
       '.sa-message-assistant {' +
         'align-self: flex-start;' +
-        'background: rgba(255,255,255,0.1);' +
+        'background: ' + getAiBgColor() + ';' +
         'color: ' + settings.message_text_color + ';' +
       '}' +
       '.sa-input-area {' +
         'padding: 12px;' +
-        'background: ' + adjustBrightness(settings.primary_color, -30) + ';' +
+        'background: ' + getHeaderColor() + ';' +
         'border-top: 1px solid rgba(0,0,0,0.1);' +
         'display: flex;' +
         'gap: 8px;' +
@@ -170,7 +191,7 @@
         'width: 44px;' +
         'height: 44px;' +
         'border-radius: 50%;' +
-        'background: ' + settings.message_text_color + ';' +
+        'background: ' + getWidgetCircleColor() + ';' +
         'border: none;' +
         'cursor: pointer;' +
         'display: flex;' +
@@ -184,7 +205,7 @@
       '.sa-send svg {' +
         'width: 20px;' +
         'height: 20px;' +
-        'fill: ' + settings.primary_color + ';' +
+        'fill: #ffffff;' +
       '}' +
       '.sa-typing {' +
         'display: none;' +
@@ -223,8 +244,8 @@
       '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">' +
         '<defs>' +
           '<linearGradient id="sa-gradient" x1="0%" y1="0%" x2="100%" y2="100%">' +
-            '<stop offset="0%" stopColor="#6366f1" />' +
-            '<stop offset="100%" stopColor="#818cf8" />' +
+            '<stop offset="0%" stopColor="' + getWidgetCircleColor() + '" />' +
+            '<stop offset="100%" stopColor="' + adjustBrightness(getWidgetCircleColor(), 30) + '" />' +
           '</linearGradient>' +
           '<filter id="sa-glow">' +
             '<feGaussianBlur stdDeviation="0.8" result="coloredBlur"/>' +

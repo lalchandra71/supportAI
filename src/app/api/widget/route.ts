@@ -7,10 +7,14 @@ export async function GET(request: NextRequest) {
     const userId = request.nextUrl.searchParams.get('userId');
     
     if (!userId || !supabaseAdmin || userId === 'demo-user') {
-      return NextResponse.json({ 
+return NextResponse.json({ 
         company_name: 'Demo',
         primary_color: '#6366f1',
-        message_text_color: '#ffffff',
+        header_color: '#12121a',
+        user_bgcolor: '#6366f1',
+        ai_bgcolor: '#27272a',
+        message_text_color: '#f4f4f5',
+        send_icon_color: '#6366f1',
         logo_color: '#ffffff',
         position: 'bottom-right',
         allowed_domains: ''
