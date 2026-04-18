@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import SupportAILogo from '@/components/SupportAILogo';
 import Header from '@/components/Header';
@@ -10,6 +11,19 @@ export default function LandingPage() {
 
   const handleGetStarted = (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      const userJson = localStorage.getItem('supportai_current_user');
+      if (userJson) {
+        const user = JSON.parse(userJson);
+        if (user && user.id) {
+          window.location.href = '/admin/dashboard';
+          return;
+        }
+      }
+    } catch (err) {
+      console.error('Error parsing user:', err);
+    }
+    
     if (email) {
       window.location.href = `/login?email=${encodeURIComponent(email)}`;
     } else {
@@ -165,9 +179,9 @@ export default function LandingPage() {
         <div className="max-w-2xl mx-auto">
           <h3 className="text-3xl font-semibold mb-4">Ready to reduce support tickets?</h3>
           <p className="text-[var(--text-secondary)] mb-8">Start with a 14-day free trial. No credit card required.</p>
-          <Link href="/login" className="inline-block px-8 py-4 rounded-xl bg-[var(--accent-primary)] text-white font-medium text-lg hover:bg-[var(--accent-hover)] transition-colors">
+          <button onClick={handleGetStarted} className="inline-block px-8 py-4 rounded-xl bg-[var(--accent-primary)] text-white font-medium text-lg hover:bg-[var(--accent-hover)] transition-colors">
             Get Started
-          </Link>
+          </button>
         </div>
        </section>
 

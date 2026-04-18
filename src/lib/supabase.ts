@@ -109,12 +109,13 @@ export async function addConversation(
   userId: string,
   message: string,
   response: string,
-  sources: string[] = []
+  sources: string[] = [],
+  resolved: boolean = false
 ): Promise<string> {
   if (!supabaseAdmin) return '';
   const { data, error } = await supabaseAdmin
     .from('conversations')
-    .insert({ user_id: userId, message, response, sources })
+    .insert({ user_id: userId, message, response, sources, resolved })
     .select()
     .single();
 
@@ -217,7 +218,7 @@ export async function getWidgetSettings(userId: string): Promise<WidgetSettings 
 
 export async function saveWidgetSettings(
   userId: string,
-  settings: Partial<Pick<WidgetSettings, 'company_name' | 'primary_color' | 'message_text_color' | 'logo_color' | 'position' | 'allowed_domains'>>
+  settings: Partial<Pick<WidgetSettings, 'company_name' | 'primary_color' | 'message_text_color' | 'logo_color' | 'position'>>
 ): Promise<{ success: boolean; error?: string }> {
   if (!supabaseAdmin) {
     return { success: false, error: 'Database not configured' };

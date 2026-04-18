@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       const fallbackResponse = "I don't have any documents to answer this. Please add documents first.";
       
       if (userId) {
-        await addConversation(userId, message, fallbackResponse, []);
+        await addConversation(userId, message, fallbackResponse, [], false);
       }
       
       return NextResponse.json({ response: fallbackResponse, sources: [] });
@@ -96,9 +96,11 @@ export async function POST(request: NextRequest) {
     ];
 
     const response = await createChatCompletion(messages);
+    
+    const isResolved = response && !response.includes("don't have") && !response.includes("cannot answer") && !response.includes("don't know");
 
     if (userId) {
-      await addConversation(userId, message, response, sources);
+      await addConversation(userId, message, response, sources, isResolved);
     }
 
     return NextResponse.json({ response, sources });

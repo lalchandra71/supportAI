@@ -734,8 +734,7 @@ export async function saveWidgetSettingsAction(
   primaryColor: string,
   messageTextColor: string,
   logoColor: string,
-  position: string,
-  allowedDomains: string
+  position: string
 ) {
   try {
     const result = await saveWidgetSettings(userId, {

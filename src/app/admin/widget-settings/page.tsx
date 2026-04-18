@@ -19,7 +19,6 @@ export default function SetupPage() {
   const [messageTextColor, setMessageTextColor] = useState('#ffffff');
   const [logoColor, setLogoColor] = useState('#ffffff');
   const [widgetPosition, setWidgetPosition] = useState('bottom-right');
-  const [allowedDomains, setAllowedDomains] = useState('');
   const [widgetOpen, setWidgetOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -120,8 +119,7 @@ export default function SetupPage() {
       primaryColor,
       messageTextColor,
       logoColor,
-      widgetPosition,
-      allowedDomains
+      widgetPosition
     );
     setSaving(false);
     
@@ -215,19 +213,6 @@ export default function SetupPage() {
                     Bottom Left
                   </button>
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Allowed Domains</label>
-                <input
-                  type="text"
-                  value={allowedDomains}
-                  onChange={(e) => {
-                    setAllowedDomains(e.target.value);
-                    localStorage.setItem('supportai_domains', e.target.value);
-                  }}
-                  placeholder="example.com, www.example.com"
-                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors font-mono text-sm"
-                />
               </div>
               <button
                 onClick={saveSettings}
