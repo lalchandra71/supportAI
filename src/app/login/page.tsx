@@ -44,7 +44,7 @@ function LoginForm() {
         localStorage.setItem('supportai_current_user', JSON.stringify(result.user));
       }
 
-      router.push('/admin');
+      router.push('/admin/dashboard');
     } catch (err) {
       setError('An error occurred. Please try again.');
     }

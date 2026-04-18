@@ -184,3 +184,72 @@ export async function getDashboardStats(userId?: string): Promise<{
     resolvedCount: resolvedCount || 0,
   };
 }
+
+export interface WidgetSettings {
+  id: string;
+  user_id: string;
+  company_name: string;
+  primary_color: string;
+  message_text_color: string;
+  logo_color: string;
+  position: string;
+  allowed_domains: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getWidgetSettings(userId: string): Promise<WidgetSettings | null> {
+  if (!supabaseAdmin) return null;
+
+  const { data, error } = await supabaseAdmin
+    .from('widget_settings')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return null;
+    console.error('Error getting widget settings:', error);
+    return null;
+  }
+  return data;
+}
+
+export async function saveWidgetSettings(
+  userId: string,
+  settings: Partial<Pick<WidgetSettings, 'company_name' | 'primary_color' | 'message_text_color' | 'logo_color' | 'position' | 'allowed_domains'>>
+): Promise<{ success: boolean; error?: string }> {
+  if (!supabaseAdmin) {
+    return { success: false, error: 'Database not configured' };
+  }
+
+  const existing = await getWidgetSettings(userId);
+  const payload = {
+    user_id: userId,
+    ...settings,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (existing) {
+    const { error } = await supabaseAdmin
+      .from('widget_settings')
+      .update(payload)
+      .eq('user_id', userId);
+
+    if (error) {
+      console.error('Error updating widget settings:', error);
+      return { success: false, error: error.message };
+    }
+  } else {
+    const { error } = await supabaseAdmin
+      .from('widget_settings')
+      .insert(payload);
+
+    if (error) {
+      console.error('Error inserting widget settings:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  return { success: true };
+}

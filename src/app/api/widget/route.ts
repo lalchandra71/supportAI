@@ -1,6 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, matchDocuments, addConversation } from '@/lib/supabase';
+import { supabase, supabaseAdmin, matchDocuments, addConversation, getWidgetSettings } from '@/lib/supabase';
 import { createEmbedding, createChatCompletion, RAG_CONFIG } from '@/lib/openai';
+
+export async function GET(request: NextRequest) {
+  try {
+    const userId = request.nextUrl.searchParams.get('userId');
+    
+    if (!userId || !supabaseAdmin) {
+      return NextResponse.json({ 
+        company_name: 'SupportAI',
+        primary_color: '#6366f1',
+        message_text_color: '#ffffff',
+        logo_color: '#ffffff',
+        position: 'bottom-right',
+        allowed_domains: ''
+      });
+    }
+    
+    const settings = await getWidgetSettings(userId);
+    
+    if (!settings) {
+      return NextResponse.json({ 
+        company_name: 'SupportAI',
+        primary_color: '#6366f1',
+        message_text_color: '#ffffff',
+        logo_color: '#ffffff',
+        position: 'bottom-right',
+        allowed_domains: ''
+      });
+    }
+    
+    return NextResponse.json({
+      company_name: settings.company_name,
+      primary_color: settings.primary_color,
+      message_text_color: settings.message_text_color,
+      logo_color: settings.logo_color,
+      position: settings.position,
+      allowed_domains: settings.allowed_domains,
+    });
+  } catch (error) {
+    console.error('Widget settings API error:', error);
+    return NextResponse.json({ error: 'Failed to get settings' }, { status: 500 });
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {

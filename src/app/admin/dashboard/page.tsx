@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getStats, getConversationList, Stats, Conversation } from '../actions';
+import { getStats, getConversationList, Stats, Conversation } from '../../actions';
 import Sidebar from '@/components/Sidebar';
 
 export default function AdminDashboard() {

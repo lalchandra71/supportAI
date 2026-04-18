@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { uploadDocument, getDocumentList, deleteDocument, updateDocument, getFolders, createFolder as createFolderDB, deleteFolder as deleteFolderDB, updateDocumentFolder, Folder } from '../actions';
+import { uploadDocument, getDocumentList, deleteDocument, updateDocument, getFolders, createFolder as createFolderDB, deleteFolder as deleteFolderDB, updateDocumentFolder, Folder } from '../../actions';
 import Sidebar from '@/components/Sidebar';
 
 interface Document {

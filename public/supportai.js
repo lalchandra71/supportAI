@@ -2,10 +2,49 @@
   'use strict';
 
   var WIDGET_ID = 'supportai-widget';
+  var DEFAULT_SETTINGS = {
+    company_name: 'SupportAI',
+    primary_color: '#6366f1',
+    message_text_color: '#ffffff',
+    logo_color: '#ffffff',
+    position: 'bottom-right'
+  };
+  var settings = DEFAULT_SETTINGS;
+
+  function adjustBrightness(hex, percent) {
+    var num = parseInt(hex.replace('#', ''), 16);
+    var r = Math.max(0, Math.min(255, (num >> 16) + percent));
+    var g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + percent));
+    var b = Math.max(0, Math.min(255, (num & 0x0000FF) + percent));
+    return '#' + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+  }
 
   function init() {
     if (document.getElementById(WIDGET_ID)) return;
 
+    fetchWidgetSettings();
+  }
+
+  function fetchWidgetSettings() {
+    var userId = window.supportai_user_id;
+    var url = '/api/widget';
+    if (userId) {
+      url += '?userId=' + userId;
+    }
+    fetch(url)
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data && data.company_name) {
+          settings = data;
+        }
+        renderWidget();
+      })
+      .catch(function() {
+        renderWidget();
+      });
+  }
+
+  function renderWidget() {
     var container = document.createElement('div');
     container.id = WIDGET_ID;
     container.innerHTML = getWidgetHTML();
@@ -15,11 +54,12 @@
   }
 
   function getWidgetHTML() {
+    var pos = settings.position === 'bottom-left' ? 'left: 20px;' : 'right: 20px;';
     return '<style>' +
       '#' + WIDGET_ID + ' {' +
         'position: fixed;' +
         'bottom: 20px;' +
-        'right: 20px;' +
+        pos +
         'z-index: 999999;' +
         'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;' +
       '}' +
@@ -30,10 +70,10 @@
         'width: 60px;' +
         'height: 60px;' +
         'border-radius: 50%;' +
-        'background: linear-gradient(135deg, #6366f1, #818cf8);' +
+        'background: ' + settings.primary_color + ';' +
         'border: none;' +
         'cursor: pointer;' +
-        'box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);' +
+        'box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);' +
         'display: flex;' +
         'align-items: center;' +
         'justify-content: center;' +
@@ -48,32 +88,32 @@
       '.sa-chat {' +
         'position: absolute;' +
         'bottom: 70px;' +
-        'right: 0;' +
+        (settings.position === 'bottom-left' ? 'left: 0;' : 'right: 0;') +
         'width: 380px;' +
         'height: 500px;' +
         'max-height: calc(100vh - 100px);' +
-        'background: #12121a;' +
+        'background: ' + settings.primary_color + ';' +
         'border-radius: 16px;' +
         'box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);' +
         'display: none;' +
         'flex-direction: column;' +
         'overflow: hidden;' +
-        'border: 1px solid #27272a;' +
+        'border: 1px solid rgba(0,0,0,0.1);' +
       '}' +
       '.sa-chat.open {' +
         'display: flex;' +
       '}' +
       '.sa-header {' +
         'padding: 16px;' +
-        'background: #1a1a24;' +
-        'border-bottom: 1px solid #27272a;' +
+        'background: ' + adjustBrightness(settings.primary_color, -30) + ';' +
+        'border-bottom: 1px solid rgba(0,0,0,0.1);' +
         'display: flex;' +
         'align-items: center;' +
         'gap: 12px;' +
       '}' +
       '.sa-header-title {' +
         'font-weight: 600;' +
-        'color: #f4f4f5;' +
+        'color: ' + settings.message_text_color + ';' +
       '}' +
       '.sa-messages {' +
         'flex: 1;' +
@@ -94,18 +134,18 @@
       '}' +
       '.sa-message-user {' +
         'align-self: flex-end;' +
-        'background: #1e1b4b;' +
-        'color: white;' +
+        'background: ' + adjustBrightness(settings.primary_color, -30) + ';' +
+        'color: ' + settings.message_text_color + ';' +
       '}' +
       '.sa-message-assistant {' +
         'align-self: flex-start;' +
-        'background: #27272a;' +
-        'color: #f4f4f5;' +
+        'background: rgba(255,255,255,0.1);' +
+        'color: ' + settings.message_text_color + ';' +
       '}' +
       '.sa-input-area {' +
         'padding: 12px;' +
-        'background: #1a1a24;' +
-        'border-top: 1px solid #27272a;' +
+        'background: ' + adjustBrightness(settings.primary_color, -30) + ';' +
+        'border-top: 1px solid rgba(0,0,0,0.1);' +
         'display: flex;' +
         'gap: 8px;' +
       '}' +
@@ -113,20 +153,24 @@
         'flex: 1;' +
         'padding: 12px 16px;' +
         'border-radius: 24px;' +
-        'border: 1px solid #27272a;' +
-        'background: #12121a;' +
-        'color: #f4f4f5;' +
+        'border: 1px solid rgba(255,255,255,0.2);' +
+        'background: rgba(255,255,255,0.1);' +
+        'color: ' + settings.message_text_color + ';' +
         'font-size: 14px;' +
         'outline: none;' +
       '}' +
+      '.sa-input::placeholder {' +
+        'color: ' + settings.message_text_color + ';' +
+        'opacity: 0.7;' +
+      '}' +
       '.sa-input:focus {' +
-        'border-color: #6366f1;' +
+        'border-color: ' + settings.message_text_color + ';' +
       '}' +
       '.sa-send {' +
         'width: 44px;' +
         'height: 44px;' +
         'border-radius: 50%;' +
-        'background: #6366f1;' +
+        'background: ' + settings.message_text_color + ';' +
         'border: none;' +
         'cursor: pointer;' +
         'display: flex;' +
@@ -134,19 +178,19 @@
         'justify-content: center;' +
       '}' +
       '.sa-send:disabled {' +
-        'background: #27272a;' +
+        'opacity: 0.5;' +
         'cursor: not-allowed;' +
       '}' +
       '.sa-send svg {' +
         'width: 20px;' +
         'height: 20px;' +
-        'fill: white;' +
+        'fill: ' + settings.primary_color + ';' +
       '}' +
       '.sa-typing {' +
         'display: none;' +
         'padding: 12px 16px;' +
         'border-radius: 16px;' +
-        'background: #27272a;' +
+        'background: rgba(255,255,255,0.1);' +
         'margin-top: 8px;' +
         'align-self: flex-start;' +
       '}' +
@@ -161,7 +205,7 @@
         'width: 8px;' +
         'height: 8px;' +
         'border-radius: 50%;' +
-        'background: #6366f1;' +
+        'background: ' + settings.message_text_color + ';' +
         'animation: sa-pulse 1.4s ease-in-out infinite;' +
       '}' +
       '.sa-typing-dot:nth-child(2) { animation-delay: 0.2s; }' +
@@ -190,17 +234,12 @@
             '</feMerge>' +
           '</filter>' +
         '</defs>' +
-        '<path d="M8 8C8 8 8 14 8 18.5C8 22.5 10 25.5 13 25.5C13 25.5 17.5 27 17.5 27L32 32V18C32 8.5 21 4 13 4C8.5 4 5 6.5 4.5 10L8 8Z" fill="url(#sa-gradient)" filter="url(#sa-glow)"/>' +
-        '<g fill="#ffffff" filter="url(#sa-glow)">' +
-          '<path d="M20 13L20.5 15L22 15.5L21 17L21.5 19L20 18L18.5 19L19 17L18 15.5L19.5 15L20 13Z" />' +
-          '<path d="M25 14L25.5 16L27 16.5L26 18.5L26.5 20.5L25 19.5L23.5 20.5L24 18.5L23 16.5L24.5 16L25 14Z" opacity="0.7"/>' +
-          '<path d="M15 14L15.5 16L17 16.5L16 18.5L16.5 20.5L15 19.5L13.5 20.5L14 18.5L13 16.5L14.5 16L15 14Z" opacity="0.7"/>' +
-        '</g>' +
+        '<path d="M8 8C8 8 8 14 8 18.5C8 22.5 10 25.5 13 25.5C13 25.5 17.5 27 17.5 27L32 32V18C32 8.5 21 4 13 4C8.5 4 5 6.5 4.5 10L8 8Z" fill="' + settings.logo_color + '"/>' +
       '</svg>' +
     '</button>' +
     '<div class="sa-chat">' +
       '<div class="sa-header">' +
-        '<span class="sa-header-title">SupportAI</span>' +
+        '<span class="sa-header-title">' + settings.company_name + ' Support AI</span>' +
       '</div>' +
       '<div class="sa-messages">' +
         '<div class="sa-message sa-message-assistant">Hello! How can I help you today?</div>' +

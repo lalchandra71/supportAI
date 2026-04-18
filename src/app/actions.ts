@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { supabase, supabaseAdmin, getDocuments, deleteDocument as deleteDoc, matchDocuments, getConversations, addConversation, getDashboardStats } from '@/lib/supabase';
+import { supabase, supabaseAdmin, getDocuments, deleteDocument as deleteDoc, matchDocuments, getConversations, addConversation, getDashboardStats, getWidgetSettings, saveWidgetSettings } from '@/lib/supabase';
 import { createEmbedding, createChatCompletion, RAG_CONFIG } from '@/lib/openai';
 import crypto from 'crypto';
 
@@ -715,5 +715,40 @@ export async function updateDocumentFolder(docId: string, folderId: string | nul
   } catch (error) {
     console.error('Error updating document folder:', error);
     return { success: false, error: 'Failed to update folder' };
+  }
+}
+
+export async function getWidgetSettingsAction(userId: string) {
+  try {
+    const settings = await getWidgetSettings(userId);
+    return { success: true, settings };
+  } catch (error) {
+    console.error('Error getting widget settings:', error);
+    return { success: false, error: 'Failed to get settings' };
+  }
+}
+
+export async function saveWidgetSettingsAction(
+  userId: string,
+  companyName: string,
+  primaryColor: string,
+  messageTextColor: string,
+  logoColor: string,
+  position: string,
+  allowedDomains: string
+) {
+  try {
+    const result = await saveWidgetSettings(userId, {
+      company_name: companyName,
+      primary_color: primaryColor,
+      message_text_color: messageTextColor,
+      logo_color: logoColor,
+      position: position,
+      allowed_domains: allowedDomains,
+    });
+    return result;
+  } catch (error) {
+    console.error('Error saving widget settings:', error);
+    return { success: false, error: 'Failed to save settings' };
   }
 }
