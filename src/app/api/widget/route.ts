@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, matchDocuments, addConversation } from '@/lib/supabase';
-import { createEmbedding, createChatCompletion } from '@/lib/openai';
+import { createEmbedding, createChatCompletion, RAG_CONFIG } from '@/lib/openai';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     
     try {
       embedding = await createEmbedding(message);
-      matches = await matchDocuments(embedding, 5);
+      matches = await matchDocuments(embedding, RAG_CONFIG.matchCount);
     } catch {
       return NextResponse.json({ 
         response: 'AI service not configured', 
@@ -39,21 +39,17 @@ export async function POST(request: NextRequest) {
     }
 
     const context = matches
-      .map(m => `Document: ${m.title}\nContent: ${m.content}`)
+      .slice(0, 2)
+      .map(m => `Document: ${m.title}\nContent: ${m.content.slice(0, RAG_CONFIG.maxContextChars)}`)
       .join('\n\n');
 
     const sources = [...new Set(matches.map(m => m.title))];
 
-    const systemMessage = `You are a helpful AI support assistant. 
-Use the following context from documents to answer the user's question.
-If you cannot find the answer in the context, say so honestly.
-
-Context:
-${context}`;
+    const systemMessage = `You are a helpful AI support assistant. Read the context below and answer the user's question in your own words. Summarize and explain the answer naturally - don't just repeat the text verbatim. If the question cannot be answered from the context, say you don't have that information.\n\nContext:\n${context}`;
 
     const messages = [
       { role: 'system' as const, content: systemMessage },
-      ...(history || []).map((h: { role: string; content: string }) => ({ role: h.role as 'user' | 'assistant', content: h.content })),
+      ...(history || []).slice(-RAG_CONFIG.maxHistory).map((h: { role: string; content: string }) => ({ role: h.role as 'user' | 'assistant', content: h.content.slice(0, 200) })),
       { role: 'user' as const, content: message },
     ];
 

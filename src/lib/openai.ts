@@ -1,5 +1,11 @@
 import OpenAI from 'openai';
 
+export const RAG_CONFIG = {
+  matchCount: 3,
+  maxContextChars: 800,
+  maxHistory: 1,
+};
+
 let _openai: OpenAI | null = null;
 
 function getOpenAI(): OpenAI {

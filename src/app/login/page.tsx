@@ -104,6 +104,11 @@ function LoginForm() {
                 required
                 className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
               />
+              <div className="text-right mt-1">
+                <Link href="/forgot-password" className="text-sm text-[var(--accent-primary)] hover:underline">
+                  Forgot Password?
+                </Link>
+              </div>
             </div>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}

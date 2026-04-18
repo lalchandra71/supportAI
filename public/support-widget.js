@@ -2,14 +2,12 @@
   'use strict';
 
   const WIDGET_ID = 'supportai-widget';
-  const WIDGET_ATTR = 'data-supportai';
 
   function init() {
     if (document.getElementById(WIDGET_ID)) return;
 
     const container = document.createElement('div');
     container.id = WIDGET_ID;
-    container.setAttribute(WIDGET_ATTR, 'loaded');
     container.innerHTML = getWidgetHTML();
     document.body.appendChild(container);
 
@@ -357,11 +355,10 @@
       messages.appendChild(div);
       messages.scrollTop = messages.scrollHeight;
     }
-  }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
