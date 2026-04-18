@@ -6,9 +6,9 @@ export async function GET(request: NextRequest) {
   try {
     const userId = request.nextUrl.searchParams.get('userId');
     
-    if (!userId || !supabaseAdmin) {
+    if (!userId || !supabaseAdmin || userId === 'demo-user') {
       return NextResponse.json({ 
-        company_name: 'SupportAI',
+        company_name: 'Demo',
         primary_color: '#6366f1',
         message_text_color: '#ffffff',
         logo_color: '#ffffff',
