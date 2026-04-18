@@ -110,6 +110,11 @@ export async function deleteDocument(id: string, userId?: string): Promise<{ suc
     if (!userId) {
       return { success: false, error: 'Authentication required' };
     }
+
+    if (!supabase) {
+      return { success: false, error: 'Database not configured' };
+    }
+
     // Verify ownership before deleting
     const { data: doc, error: fetchErr } = await supabase
       .from('documents')
