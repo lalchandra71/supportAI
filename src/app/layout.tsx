@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   description: "An AI-powered support system using RAG to answer your questions",
   icons: {
     icon: "/favicon.svg",
+    apple: { url: "/favicon.svg", sizes: '40x40' },
   },
 };
 
