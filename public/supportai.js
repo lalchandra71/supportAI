@@ -113,7 +113,7 @@
         'width: 380px;' +
         'height: 500px;' +
         'max-height: calc(100vh - 100px);' +
-        'background: ' + getHeaderColor() + ';' +
+        'background: linear-gradient(180deg, ' + getHeaderColor() + ' 0%, ' + adjustBrightness(getHeaderColor(), -10) + ' 100%);' +
         'border-radius: 16px;' +
         'box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);' +
         'display: none;' +
