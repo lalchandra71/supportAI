@@ -743,7 +743,6 @@ export async function saveWidgetSettingsAction(
       message_text_color: messageTextColor,
       logo_color: logoColor,
       position: position,
-      allowed_domains: allowedDomains,
     });
     return result;
   } catch (error) {
