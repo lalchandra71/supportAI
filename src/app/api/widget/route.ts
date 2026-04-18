@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     const response = await createChatCompletion(messages);
     
-    const isResolved = response && !response.includes("don't have") && !response.includes("cannot answer") && !response.includes("don't know");
+    const isResolved = !!(response && !response.includes("don't have") && !response.includes("cannot answer") && !response.includes("don't know"));
 
     if (userId) {
       await addConversation(userId, message, response, sources, isResolved);

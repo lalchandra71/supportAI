@@ -47,14 +47,11 @@ export default function SetupPage() {
         const savedTextColor = localStorage.getItem('supportai_text_color');
         const savedLogoColor = localStorage.getItem('supportai_logo_color');
         const savedPosition = localStorage.getItem('supportai_position');
-        const savedDomains = localStorage.getItem('supportai_domains');
-        
         if (savedName) setCompanyName(savedName);
         if (savedColor) setPrimaryColor(savedColor);
         if (savedTextColor) setMessageTextColor(savedTextColor);
         if (savedLogoColor) setLogoColor(savedLogoColor);
         if (savedPosition) setWidgetPosition(savedPosition);
-        if (savedDomains) setAllowedDomains(savedDomains);
         
         if (userId) {
           const result = await getWidgetSettingsAction(userId);
@@ -65,14 +62,12 @@ export default function SetupPage() {
             setMessageTextColor(db.message_text_color || messageTextColor);
             setLogoColor(db.logo_color || logoColor);
             setWidgetPosition(db.position || widgetPosition);
-            setAllowedDomains(db.allowed_domains || '');
             
             localStorage.setItem('supportai_company', db.company_name || '');
             localStorage.setItem('supportai_color', db.primary_color || '');
             localStorage.setItem('supportai_text_color', db.message_text_color || '');
             localStorage.setItem('supportai_logo_color', db.logo_color || '');
             localStorage.setItem('supportai_position', db.position || '');
-            localStorage.setItem('supportai_domains', db.allowed_domains || '');
           }
         }
       } catch (error) {
