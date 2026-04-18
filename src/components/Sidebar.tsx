@@ -44,7 +44,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-[var(--bg-primary)]">
       <aside className="w-64 bg-[var(--bg-secondary)] border-r border-[var(--border)] flex flex-col fixed h-screen">
         <div className="p-4 border-b border-[var(--border)]">
-          <Link href="/admin" className="flex items-center gap-2">
+          <Link href="/admin/dashboard" className="flex items-center gap-2">
             <SupportAILogo size={32} showText={false} />
             <span className="text-xl font-semibold gradient-text">SupportAI</span>
           </Link>
@@ -72,18 +72,7 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-[var(--border)]">
-          <button 
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-4 py-3 w-full rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            <span className="font-medium">Logout</span>
-          </button>
-        </div>
-      </aside>
+        </aside>
 
       {/* Top Right Profile Icon with Dropdown */}
       <div className="flex-1 ml-64">
@@ -123,6 +112,15 @@ export default function Sidebar({ children }: { children: React.ReactNode }) {
                   </svg>
                   View Profile
                 </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-3 py-2 w-full text-left text-sm text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Logout
+                </button>
               </div>
             )}
           </div>
