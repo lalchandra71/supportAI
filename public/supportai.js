@@ -5,8 +5,8 @@
   var DEFAULT_SETTINGS = {
     company_name: 'Demo',
     primary_color: '#6366f1',
-    header_color: '#12121a',
-    widget_body: '#0a0a0f',
+    header_color: '#202020',
+    widget_body: '#202020',
     user_bgcolor: '#1e1b4b',
     ai_bgcolor: '#27272a',
     message_text_color: '#f4f4f5',

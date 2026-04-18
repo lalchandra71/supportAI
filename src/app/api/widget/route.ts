@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 return NextResponse.json({ 
         company_name: 'Demo',
         primary_color: '#6366f1',
-        header_color: '#12121a',
+        header_color: '#202020',
         user_bgcolor: '#6366f1',
         ai_bgcolor: '#27272a',
         message_text_color: '#f4f4f5',
