@@ -73,6 +73,11 @@ export async function uploadDocument(
     }
     console.log('Insert payload user_id:', insertPayload.user_id);
 
+    if (!supabaseAdmin) {
+      console.error('supabaseAdmin is not initialized');
+      return { success: false, error: 'Database not configured' };
+    }
+
     const { data, error: docError } = await supabaseAdmin
       .from('documents')
       .insert(insertPayload)
@@ -176,6 +181,10 @@ export async function updateDocument(
 
     if (folderId && folderId !== 'none') {
       updatePayload.folder_id = folderId;
+    }
+
+    if (!supabaseAdmin) {
+      return { success: false, error: 'Database not configured' };
     }
 
     const { error: docError } = await supabaseAdmin

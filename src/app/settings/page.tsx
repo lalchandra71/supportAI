@@ -43,7 +43,8 @@ export default function SettingsPage() {
     setMessage(null);
 
     try {
-      const result = await updateUserPlan(user.id, plan || user.plan);
+      const selectedPlan = (plan || user.plan) as 'free' | 'basic' | 'pro' | 'enterprise';
+      const result = await updateUserPlan(user.id, selectedPlan);
       if (result.success) {
         if (plan) {
           const updatedUser = { ...user, plan };
