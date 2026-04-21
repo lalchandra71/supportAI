@@ -151,7 +151,7 @@
         'display: flex;' +
         'flex-direction: column;' +
         'gap: 12px;' +
-        'align-items: flex-start;' +
+        'align-items: stretch;' +
       '}' +
       '.sa-message {' +
         'max-width: 85%;' +
@@ -215,26 +215,46 @@
         'height: 20px;' +
         'fill: #ffffff;' +
       '}' +
-      '.sa-typing {' +
-        'display: none;' +
+'.sa-typing-dots {' +
         'padding: 12px 16px;' +
         'border-radius: 16px;' +
-        'background: rgba(255,255,255,0.1);' +
-        'margin-top: 8px;' +
-        'align-self: flex-start;' +
+        'background: ' + getAiBgColor() + ';' +
+        'display: inline-flex;' +
+        'gap: 6px;' +
+        'align-items: center;' +
+        'max-width: 85%;' +
+      '}' +
+      '.sa-typing-dot {' +
+        'width: 6px;' +
+        'height: 6px;' +
+        'border-radius: 50%;' +
+        'background: ' + settings.message_text_color + ';' +
+        'animation: sa-pulse 1.4s ease-in-out infinite;' +
+      '}' +
+      '.sa-typing-dot:nth-child(2) { animation-delay: 0.2s; }' +
+      '.sa-typing-dot:nth-child(3) { animation-delay: 0.4s; }' +
+      '@keyframes sa-pulse {' +
+        '0%, 100% { opacity: 0.4; }' +
+        '50% { opacity: 1; }' +
       '}' +
       '.sa-typing.show {' +
-        'display: block;' +
-      '}' +
-      '.sa-typing-dots {' +
         'display: flex;' +
+        'flex-direction: row;' +
         'gap: 4px;' +
+      '}' +
+      '.sa-typing-dot {' +
+        'width: 6px;' +
+        'height: 6px;' +
+        'border-radius: 50%;' +
+        'background: ' + settings.message_text_color + ';' +
+        'animation: sa-pulse 1.4s ease-in-out infinite;' +
       '}' +
       '.sa-typing-dot {' +
         'width: 8px;' +
         'height: 8px;' +
         'border-radius: 50%;' +
         'background: ' + settings.message_text_color + ';' +
+        'opacity: 0.4;' +
         'animation: sa-pulse 1.4s ease-in-out infinite;' +
       '}' +
       '.sa-typing-dot:nth-child(2) { animation-delay: 0.2s; }' +
@@ -272,13 +292,6 @@
       '</div>' +
       '<div class="sa-messages">' +
         '<div class="sa-message sa-message-assistant">Hello! How can I help you today?</div>' +
-        '<div class="sa-typing">' +
-          '<div class="sa-typing-dots">' +
-            '<div class="sa-typing-dot"></div>' +
-            '<div class="sa-typing-dot"></div>' +
-            '<div class="sa-typing-dot"></div>' +
-          '</div>' +
-        '</div>' +
       '</div>' +
       '<div class="sa-input-area">' +
         '<input type="text" class="sa-input" placeholder="Type a message..." />' +
@@ -295,7 +308,6 @@
     var input = container.querySelector('.sa-input');
     var send = container.querySelector('.sa-send');
     var messages = container.querySelector('.sa-messages');
-    var typing = container.querySelector('.sa-typing');
 
     toggle.addEventListener('click', function() {
       chat.classList.toggle('open');
@@ -321,7 +333,12 @@
 
       addMessage(message, 'user');
       input.value = '';
-      typing.classList.add('show');
+      
+      var typingEl = document.createElement('div');
+      typingEl.className = 'sa-message sa-message-assistant sa-typing-dots';
+      typingEl.innerHTML = '<span class="sa-typing-dot"></span><span class="sa-typing-dot"></span><span class="sa-typing-dot"></span>';
+      messages.appendChild(typingEl);
+      messages.scrollTop = messages.scrollHeight;
       send.disabled = true;
 
       var userMsg = message;
@@ -332,7 +349,7 @@
       })
       .then(function(res) { return res.json(); })
       .then(function(data) {
-        typing.classList.remove('show');
+        messages.removeChild(typingEl);
         send.disabled = false;
         if (data.error) {
           addMessage(data.error, 'assistant');
@@ -341,7 +358,9 @@
         }
       })
       .catch(function() {
-        typing.classList.remove('show');
+        if (typingEl.parentNode) {
+          messages.removeChild(typingEl);
+        }
         send.disabled = false;
         addMessage('Failed to get response.', 'assistant');
       });
