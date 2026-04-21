@@ -34,7 +34,232 @@ export default function UploadPage() {
   const [deleteTargetTitle, setDeleteTargetTitle] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadFolder, setUploadFolder] = useState<string>('none');
+  const [activeTab, setActiveTab] = useState<'upload' | 'sample'>('upload');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function renderSampleFormat() {
+    return (
+      <div className="p-6 space-y-4">
+        <p className="text-sm text-[var(--text-secondary)] mb-4">
+          Here are examples of recommended formats for your knowledge base documents:
+        </p>
+        
+        <div className="space-y-6">
+          <div className="bg-[var(--bg-tertiary)] rounded-lg p-4">
+            <h4 className="font-medium text-[var(--text-primary)] mb-2">Q and A Format</h4>
+            <div className="text-sm text-[var(--text-muted)] font-mono whitespace-pre-wrap">
+              Q: How do I reset my password?<br/>
+              A: To reset your password, click on Forgot Password on the login page, enter your email address, and follow the instructions sent to your inbox.<br/>
+              Q: What payment methods do you accept?<br/>
+              A: We accept all major credit cards (Visa, MasterCard, American Express) and PayPal.<br/>
+            </div>
+          </div>
+
+          <div className="bg-[var(--bg-tertiary)] rounded-lg p-4">
+            <h4 className="font-medium text-[var(--text-primary)] mb-2">Clear Sentences Format</h4>
+            <div className="text-sm text-[var(--text-muted)] font-mono whitespace-pre-wrap">
+              Our business hours are Monday to Friday, 9 AM to 6 PM EST.
+              We offer free shipping on orders over 50 dollars. Orders below 50 dollars have a flat 5.99 dollar shipping fee.
+              Returns can be initiated within 30 days of purchase. Visit our Returns page to start the process.
+              All products come with a 1-year manufacturer warranty covering defects in materials and workmanship.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function renderUploadModal() {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="sticky top-0 bg-[var(--bg-secondary)] border-b border-[var(--border)] p-4 flex items-center justify-between">
+            <div className="flex gap-1">
+              <button
+                onClick={() => setActiveTab('upload')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === 'upload'
+                    ? 'bg-[var(--accent-primary)] text-white'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
+                }`}
+              >
+                Upload Document
+              </button>
+              <button
+                onClick={() => setActiveTab('sample')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === 'sample'
+                    ? 'bg-[var(--accent-primary)] text-white'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
+                }`}
+              >
+                Sample Format
+              </button>
+            </div>
+            <button
+              onClick={() => {
+                setShowUploadModal(false);
+                setEditingId(null);
+                setTitle('');
+                setContent('');
+                setFileName('');
+                setUploadFolder('none');
+                setError('');
+                setActiveTab('upload');
+              }}
+              className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
+          {activeTab === 'upload' ? (
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm text-[var(--text-secondary)] mb-2">Folder</label>
+                <select
+                  value={uploadFolder}
+                  onChange={(e) => setUploadFolder(e.target.value)}
+                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
+                >
+                  <option value="none">No Folder</option>
+                  {folders.map(folder => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--text-secondary)] mb-2">Title</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Document title"
+                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--text-secondary)] mb-2">Content</label>
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Paste text content here..."
+                  rows={8}
+                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors resize-none font-mono text-sm"
+                />
+                <p className="text-xs text-[var(--text-muted)] mt-1">
+                  {content.length} characters
+                </p>
+                <p className="text-xs text-[var(--accent-primary)] mt-2 bg-[var(--accent-primary)]/10 px-3 py-2 rounded-lg">
+                  Tip: For best results, use clear sentences or Q&A format. Please check sample document
+                </p>
+              </div>
+
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-[var(--border)]"></div>
+                <span className="text-[var(--text-muted)] text-sm">or</span>
+                <div className="flex-1 h-px bg-[var(--border)]"></div>
+              </div>
+
+              <div>
+                <label className="block text-sm text-[var(--text-secondary)] mb-2">Upload File</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".txt"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full p-4 rounded-lg border-2 border-dashed border-[var(--border)] hover:border-[var(--accent-primary)] transition-colors text-center cursor-pointer"
+                >
+                  {fileName ? (
+                    <span className="text-[var(--accent-primary)]">{fileName}</span>
+                  ) : (
+                    <span className="text-[var(--text-muted)]">
+                      Click to upload .txt files
+                    </span>
+                  )}
+                </button>
+                <p className="text-xs text-[var(--text-muted)] mt-2">
+                  Only plain text (.txt) files are supported
+                </p>
+
+                {error && (
+                  <p className="text-red-500 text-sm">{error}</p>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={editingId ? handleUpdate : handleUpload}
+                    disabled={isLoading || !title.trim() || !content.trim()}
+                    className="flex-1 py-3 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
+                  >
+                    {isLoading ? 'Saving...' : editingId ? 'Update Document' : 'Upload Document'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowUploadModal(false);
+                      setEditingId(null);
+                      setTitle('');
+                      setContent('');
+                      setFileName('');
+                      setUploadFolder('none');
+                      setError('');
+                    }}
+                    className="px-6 py-3 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            renderSampleFormat()
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  function renderDeleteModal() {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] w-full max-w-md">
+          <div className="p-4 border-b border-[var(--border)]">
+            <h2 className="text-lg font-semibold text-red-500">Confirm Delete</h2>
+          </div>
+          <div className="p-6">
+            <p className="text-[var(--text-secondary)]">
+              Are you sure you want to delete "<strong>{deleteTargetTitle}</strong>"? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="flex-1 py-2 rounded-lg bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--bg-primary)] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Get current user from localStorage
   const getCurrentUser = () => {
@@ -227,317 +452,114 @@ await deleteDocument(deleteTargetId, user.id);
     });
 
     return (
-      <>
-        <Sidebar>
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-semibold">Manage Knowledge Base</h1>
-            <button
-              onClick={() => {
-                setEditingId(null);
-                setTitle('');
-                setContent('');
-                setFileName('');
-                setUploadFolder('none');
-                setError('');
-                setShowUploadModal(true);
-              }}
-              className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors"
-            >
-              + Upload Document
-            </button>
+      <Sidebar>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-semibold">Manage Knowledge Base</h1>
+          <button
+            onClick={() => {
+              setEditingId(null);
+              setTitle('');
+              setContent('');
+              setFileName('');
+              setUploadFolder('none');
+              setError('');
+              setActiveTab('upload');
+              setShowUploadModal(true);
+            }}
+            className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors"
+          >
+            + Upload Document
+          </button>
+        </div>
+
+        {/* Document List */}
+        <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)]">
+          {/* Toolbar */}
+          <div className="p-4 border-b border-[var(--border)]">
+            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h3 className="font-semibold">Documents ({filteredDocs.length})</h3>
+                <button
+                  onClick={() => setShowNewFolderModal(true)}
+                  className="px-3 py-1 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-sm hover:border-[var(--accent-primary)] transition-colors"
+                >
+                  + New Folder
+                </button>
+              </div>
+              <div className="flex gap-3 flex-wrap">
+                <select
+                  value={filterFolder}
+                  onChange={(e) => setFilterFolder(e.target.value)}
+                  className="px-3 py-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-sm focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
+                >
+                  <option value="all">All Folders</option>
+                  {folders.map(folder => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'date' | 'title')}
+                  className="px-3 py-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-sm focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
+                >
+                  <option value="date">Sort by Date</option>
+                  <option value="title">Sort by Title</option>
+                </select>
+
+                <input
+                  type="text"
+                  placeholder="Search documents..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="px-3 py-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-sm focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors w-48"
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Document List */}
-          <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)]">
-            {/* Toolbar */}
-            <div className="p-4 border-b border-[var(--border)]">
-              <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <h3 className="font-semibold">Documents ({filteredDocs.length})</h3>
-                  <button
-                    onClick={() => setShowNewFolderModal(true)}
-                    className="px-3 py-1 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-sm hover:border-[var(--accent-primary)] transition-colors"
-                  >
-                    + New Folder
-                  </button>
-                </div>
-                <div className="flex gap-3 flex-wrap">
-                  {/* Folder filter */}
-                  <select
-                    value={filterFolder}
-                    onChange={(e) => setFilterFolder(e.target.value)}
-                    className="px-3 py-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-sm focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
-                  >
-                    <option value="all">All Folders</option>
-                    {folders.map(folder => (
-                      <option key={folder.id} value={folder.id}>
-                        {folder.name}
-                      </option>
-                    ))}
-                  </select>
-
-                  {/* Sort */}
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as 'date' | 'title')}
-                    className="px-3 py-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-sm focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
-                  >
-                    <option value="date">Sort by Date</option>
-                    <option value="title">Sort by Title</option>
-                  </select>
-
-                  {/* Search */}
-                  <input
-                    type="text"
-                    placeholder="Search documents..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="px-3 py-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-sm focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors w-48"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Document Cards */}
-            <div className="divide-y divide-[var(--border)]">
-                {filteredDocs.length === 0 ? (
-                  <p className="p-8 text-[var(--text-muted)] text-sm text-center">
-                    {searchQuery || filterFolder !== 'all' 
-                      ? 'No documents match your filters.' 
-                      : 'No documents yet. Click "Upload Document" to add your first document.'}
-                  </p>
-                ) : (
-                  filteredDocs.map((doc) => {
-                    const folder = folders.find(f => f.id === doc.folder_id);
-                    return (
-                      <div key={doc.id} className="p-4 hover:bg-[var(--bg-tertiary)] transition-colors">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="font-medium truncate">{doc.title}</p>
-                              {folder && (
-                                <span 
-                                  className="px-2 py-0.5 rounded-full text-xs text-white"
-                                  style={{ backgroundColor: folder.color }}
-                                >
-                                  {folder.name}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-sm text-[var(--text-muted)]">
-                              Added {new Date(doc.created_at).toLocaleDateString()} • {doc.content.length} characters
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {/* Folder assignment dropdown */}
-                            <select
-                              value={doc.folder_id || 'none'}
-                              onChange={(e) => handleChangeDocFolder(doc.id, e.target.value)}
-                              className="px-2 py-1 rounded bg-[var(--bg-secondary)] border border-[var(--border)] text-xs focus:border-[var(--accent-primary)] outline-none"
+          {/* Document Cards */}
+          <div className="divide-y divide-[var(--border)]">
+            {filteredDocs.length === 0 ? (
+              <p className="p-8 text-[var(--text-muted)] text-sm text-center">
+                {searchQuery || filterFolder !== 'all' 
+                  ? 'No documents match your filters.' 
+                  : 'No documents yet. Click "Upload Document" to add your first document.'}
+              </p>
+            ) : (
+              filteredDocs.map((doc) => {
+                const folder = folders.find(f => f.id === doc.folder_id);
+                return (
+                  <div key={doc.id} className="p-4 hover:bg-[var(--bg-tertiary)] transition-colors">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-medium truncate">{doc.title}</p>
+                          {folder && (
+                            <span 
+                              className="px-2 py-0.5 rounded-full text-xs text-white"
+                              style={{ backgroundColor: folder.color }}
                             >
-                              <option value="none">No Folder</option>
-                              {folders.map(f => (
-                                <option key={f.id} value={f.id}>{f.name}</option>
-                              ))}
-                            </select>
-                            <button
-                              onClick={() => {
-                                setEditingId(doc.id);
-                                setTitle(doc.title);
-                                setContent(doc.content);
-                                setFileName('');
-                                setUploadFolder(doc.folder_id || 'none');
-                                setError('');
-                                setShowUploadModal(true);
-                              }}
-                              className="p-2 text-[var(--text-secondary)] hover:text-[var(--accent-primary)] transition-colors"
-                              title="Edit"
-                            >
-                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => handleDelete(doc.id, doc.title)}
-                              className="p-2 text-[var(--text-muted)] hover:text-red-500 transition-colors"
-                              title="Delete"
-                            >
-                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          </div>
+                              {folder.name}
+                            </span>
+                          )}
                         </div>
                       </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          </Sidebar>
-
-          {/* Upload Modal */}
-          {showUploadModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-                <div className="sticky top-0 bg-[var(--bg-secondary)] border-b border-[var(--border)] p-4 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold">
-                    {editingId ? 'Edit Document' : 'Add Document'}
-                  </h2>
-                  <button
-                    onClick={() => {
-                      setShowUploadModal(false);
-                      setEditingId(null);
-                      setTitle('');
-                      setContent('');
-                      setFileName('');
-                      setUploadFolder('none');
-                      setError('');
-                    }}
-                    className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-
-                <div className="p-6 space-y-4">
-                  <div>
-                    <label className="block text-sm text-[var(--text-secondary)] mb-2">Folder</label>
-                    <select
-                      value={uploadFolder}
-                      onChange={(e) => setUploadFolder(e.target.value)}
-                      className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
-                    >
-                      <option value="none">No Folder</option>
-                      {folders.map(folder => (
-                        <option key={folder.id} value={folder.id}>
-                          {folder.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-[var(--text-secondary)] mb-2">Title</label>
-                    <input
-                      type="text"
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Document title"
-                      className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-[var(--text-secondary)] mb-2">Content</label>
-                    <textarea
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      placeholder="Paste text content here..."
-                      rows={8}
-                      className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors resize-none font-mono text-sm"
-                    />
-                    <p className="text-xs text-[var(--text-muted)] mt-1">
-                      {content.length} characters
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1 h-px bg-[var(--border)]"></div>
-                    <span className="text-[var(--text-muted)] text-sm">or</span>
-                    <div className="flex-1 h-px bg-[var(--border)]"></div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-[var(--text-secondary)] mb-2">Upload File</label>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept=".txt"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="w-full p-4 rounded-lg border-2 border-dashed border-[var(--border)] hover:border-[var(--accent-primary)] transition-colors text-center cursor-pointer"
-                    >
-                      {fileName ? (
-                        <span className="text-[var(--accent-primary)]">{fileName}</span>
-                      ) : (
-                        <span className="text-[var(--text-muted)]">
-                          Click to upload .txt files
-                        </span>
-                      )}
-                    </button>
-                    <p className="text-xs text-[var(--text-muted)] mt-2">
-                      Only plain text (.txt) files are supported
-                    </p>
-
-                    {error && (
-                      <p className="text-red-500 text-sm">{error}</p>
-                    )}
-
-                    <div className="flex gap-3 pt-4">
-                      <button
-                        onClick={editingId ? handleUpdate : handleUpload}
-                        disabled={isLoading || !title.trim() || !content.trim()}
-                        className="flex-1 py-3 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
-                      >
-                        {isLoading ? 'Saving...' : editingId ? 'Update Document' : 'Upload Document'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowUploadModal(false);
-                          setEditingId(null);
-                          setTitle('');
-                          setContent('');
-                          setFileName('');
-                          setUploadFolder('none');
-                          setError('');
-                        }}
-                        className="px-6 py-3 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
-                      >
-                        Cancel
-                      </button>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          )}
+                );
+              })
+            )}
+          </div>
+        </div>
 
-          {/* Delete Confirmation Modal */}
-          {showDeleteModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] w-full max-w-md">
-                <div className="p-4 border-b border-[var(--border)]">
-                  <h2 className="text-lg font-semibold text-red-500">Confirm Delete</h2>
-                </div>
-                <div className="p-6">
-                  <p className="text-[var(--text-secondary)]">
-                    Are you sure you want to delete "<strong>{deleteTargetTitle}</strong>"? This action cannot be undone.
-                  </p>
-                  <div className="flex gap-3 mt-6">
-                    <button
-                      onClick={confirmDelete}
-                      className="flex-1 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
-                    >
-                      Delete
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteModal(false)}
-                      className="flex-1 py-2 rounded-lg bg-[var(--bg-tertiary)] text-[var(--text-primary)] border border-[var(--border)] hover:bg-[var(--bg-primary)] transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </>
-      );
-    }
+        {/* Upload Modal */}
+        {showUploadModal && renderUploadModal()}
+
+        {/* Delete Modal */}
+        {showDeleteModal && renderDeleteModal()}
+      </Sidebar>
+    );
+  }
