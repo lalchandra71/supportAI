@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,16 +15,28 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SupportAI - AI-Powered Support System",
   description: "An AI-powered support system using RAG to answer your questions",
-  icons: {
-    icon: [
-      { rel: "icon", url: "/favicon.ico" },
-      { rel: "icon", url: "/favicon.svg", type: "image/svg+xml", sizes: "any" },
-      { rel: "icon", url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { rel: "icon", url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-    ],
-    apple: "/favicon-180x180.png",
-  },
+  icons: [
+    { rel: "icon", url: "/favicon-32x32.png", sizes: "32x32" },
+    { rel: "icon", url: "/favicon-16x16.png", sizes: "16x16" },
+    { rel: "apple-touch-icon", url: "/favicon-180x180.png" },
+  ],
 };
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
+function FaviconHead() {
+  return (
+    <>
+      <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+      <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180x180.png" />
+      <link rel="shortcut icon" href="/favicon.ico" />
+    </>
+  );
+}
 
 export default function RootLayout({
   children,
@@ -33,6 +45,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+      <head>
+        <FaviconHead />
+      </head>
       <body className="min-h-screen flex flex-col">{children}</body>
     </html>
   );
