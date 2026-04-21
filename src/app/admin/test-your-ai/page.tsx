@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { uploadDocument, getDocumentList, deleteDocument, sendMessage, getFolders, createFolder as createFolderDB, deleteFolder as deleteFolderDB, Message, Folder } from '../../actions';
 import Sidebar from '@/components/Sidebar';
+import { UploadDocumentModal } from '@/components/UploadDocumentModal';
 
 interface Document {
   id: string;
@@ -23,14 +24,7 @@ export default function ChatPage() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [fileName, setFileName] = useState('');
-  const [error, setError] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
   const [folders, setFolders] = useState<Folder[]>([]);
-  const [uploadFolder, setUploadFolder] = useState<string>('none');
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -63,51 +57,17 @@ useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setFileName(file.name);
-    setTitle(file.name.replace(/\.[^/.]+$/, ''));
-
-    const reader = new FileReader();
-    reader.onload = (e) => setContent(e.target?.result as string || '');
-    reader.readAsText(file);
-  }
-
-  async function handleUpload() {
-    if (!title.trim() || !content.trim()) {
-      setError('Please provide both title and content');
-      return;
-    }
-
+  async function handleUploadDocument(content: string, title: string, folderId?: string) {
     const user = getCurrentUser();
     if (!user) {
-      setError('Authentication required');
-      return;
+      throw new Error('Authentication required');
     }
 
-    setIsUploading(true);
-    setError('');
-
-    try {
-      const folderId = uploadFolder && uploadFolder !== 'none' ? uploadFolder : undefined;
-      const result = await uploadDocument(content, title, user.id, folderId);
-      if (result.success && result.id) {
-        setTitle('');
-        setContent('');
-        setFileName('');
-        setUploadFolder('none');
-        setShowUploadModal(false);
-        loadDocuments();
-      } else {
-        setError(result.error || 'Upload failed');
-      }
-    } catch (err) {
-      setError('Upload failed');
+    const result = await uploadDocument(content, title, user.id, folderId);
+    if (!result.success || !result.id) {
+      throw new Error(result.error || 'Upload failed');
     }
-
-    setIsUploading(false);
+    loadDocuments();
   }
 
   async function handleDeleteDocument(id: string, title: string) {
@@ -120,7 +80,6 @@ useEffect(() => {
     if (!deleteTargetId) return;
     const user = getCurrentUser();
     if (!user) {
-      setError('Authentication required');
       setShowDeleteModal(false);
       return;
     }
@@ -261,14 +220,7 @@ useEffect(() => {
             
             <div className="p-3 border-t border-[var(--border)]">
               <button
-                onClick={() => {
-                  setTitle('');
-                  setContent('');
-                  setFileName('');
-                  setError('');
-                  setUploadFolder('none');
-                  setShowUploadModal(true);
-                }}
+                onClick={() => setShowUploadModal(true)}
                 className="w-full py-2 px-4 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors flex items-center justify-center gap-2"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -356,133 +308,12 @@ useEffect(() => {
       </Sidebar>
 
       {/* Upload Document Modal */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-[var(--bg-secondary)] border-b border-[var(--border)] p-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Add Document</h2>
-              <button
-                onClick={() => {
-                  setShowUploadModal(false);
-                  setTitle('');
-                  setContent('');
-                  setFileName('');
-                  setUploadFolder('none');
-                  setError('');
-                }}
-                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Folder</label>
-                <select
-                  value={uploadFolder}
-                  onChange={(e) => setUploadFolder(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
-                >
-                  <option value="none">No Folder</option>
-                  {folders.map(folder => (
-                    <option key={folder.id} value={folder.id}>
-                      {folder.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Document title"
-                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Content</label>
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Paste text content here..."
-                  rows={8}
-                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors resize-none font-mono text-sm"
-                />
-                <p className="text-xs text-[var(--text-muted)] mt-1">
-                  {content.length} characters
-                </p>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="flex-1 h-px bg-[var(--border)]"></div>
-                <span className="text-[var(--text-muted)] text-sm">or</span>
-                <div className="flex-1 h-px bg-[var(--border)]"></div>
-              </div>
-
-              <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Upload File</label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".txt"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full p-4 rounded-lg border-2 border-dashed border-[var(--border)] hover:border-[var(--accent-primary)] transition-colors text-center cursor-pointer"
-                >
-                  {fileName ? (
-                    <span className="text-[var(--accent-primary)]">{fileName}</span>
-                  ) : (
-                    <span className="text-[var(--text-muted)]">
-                      Click to upload .txt files
-                    </span>
-                  )}
-                </button>
-                <p className="text-xs text-[var(--text-muted)] mt-2">
-                  Only plain text (.txt) files are supported
-                </p>
-
-                {error && (
-                  <p className="text-red-500 text-sm">{error}</p>
-                )}
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={handleUpload}
-                    disabled={isUploading || !title.trim() || !content.trim()}
-                    className="flex-1 py-3 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
-                  >
-                    {isUploading ? 'Uploading...' : 'Upload Document'}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowUploadModal(false);
-                      setTitle('');
-                      setContent('');
-                      setFileName('');
-                      setUploadFolder('none');
-                      setError('');
-                    }}
-                    className="px-6 py-3 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <UploadDocumentModal
+        isOpen={showUploadModal}
+        onClose={() => setShowUploadModal(false)}
+        onUpload={handleUploadDocument}
+        folders={folders}
+      />
 
       {/* New Folder Modal */}
       {showNewFolderModal && (

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { uploadDocument, getDocumentList, deleteDocument, updateDocument, getFolders, createFolder as createFolderDB, deleteFolder as deleteFolderDB, updateDocumentFolder, Folder } from '../../actions';
 import Sidebar from '@/components/Sidebar';
+import { UploadDocumentModal } from '@/components/UploadDocumentModal';
 
 interface Document {
   id: string;
@@ -17,12 +18,10 @@ interface Document {
 
 export default function UploadPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [fileName, setFileName] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
+  const [editingContent, setEditingContent] = useState('');
+  const [editingFolder, setEditingFolder] = useState<string>('none');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'title'>('date');
   const [filterFolder, setFilterFolder] = useState<string>('all');
@@ -33,202 +32,6 @@ export default function UploadPage() {
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [deleteTargetTitle, setDeleteTargetTitle] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
-  const [uploadFolder, setUploadFolder] = useState<string>('none');
-  const [activeTab, setActiveTab] = useState<'upload' | 'sample'>('upload');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  function renderSampleFormat() {
-    return (
-      <div className="p-6 space-y-4">
-        <p className="text-sm text-[var(--text-secondary)] mb-4">
-          Here are examples of recommended formats for your knowledge base documents:
-        </p>
-        
-        <div className="space-y-6">
-          <div className="bg-[var(--bg-tertiary)] rounded-lg p-4">
-            <h4 className="font-medium text-[var(--text-primary)] mb-2">Q and A Format</h4>
-            <div className="text-sm text-[var(--text-muted)] font-mono whitespace-pre-wrap">
-              Q: How do I reset my password?<br/>
-              A: To reset your password, click on Forgot Password on the login page, enter your email address, and follow the instructions sent to your inbox.<br/>
-              Q: What payment methods do you accept?<br/>
-              A: We accept all major credit cards (Visa, MasterCard, American Express) and PayPal.<br/>
-            </div>
-          </div>
-
-          <div className="bg-[var(--bg-tertiary)] rounded-lg p-4">
-            <h4 className="font-medium text-[var(--text-primary)] mb-2">Clear Sentences Format</h4>
-            <div className="text-sm text-[var(--text-muted)] font-mono whitespace-pre-wrap">
-              Our business hours are Monday to Friday, 9 AM to 6 PM EST.
-              We offer free shipping on orders over 50 dollars. Orders below 50 dollars have a flat 5.99 dollar shipping fee.
-              Returns can be initiated within 30 days of purchase. Visit our Returns page to start the process.
-              All products come with a 1-year manufacturer warranty covering defects in materials and workmanship.
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  function renderUploadModal() {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-[var(--bg-secondary)] rounded-xl border border-[var(--border)] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-[var(--bg-secondary)] border-b border-[var(--border)] p-4 flex items-center justify-between">
-            <div className="flex gap-1">
-              <button
-                onClick={() => setActiveTab('upload')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === 'upload'
-                    ? 'bg-[var(--accent-primary)] text-white'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
-                }`}
-              >
-                Upload Document
-              </button>
-              <button
-                onClick={() => setActiveTab('sample')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === 'sample'
-                    ? 'bg-[var(--accent-primary)] text-white'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)]'
-                }`}
-              >
-                Sample Format
-              </button>
-            </div>
-            <button
-              onClick={() => {
-                setShowUploadModal(false);
-                setEditingId(null);
-                setTitle('');
-                setContent('');
-                setFileName('');
-                setUploadFolder('none');
-                setError('');
-                setActiveTab('upload');
-              }}
-              className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          {activeTab === 'upload' ? (
-            <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Folder</label>
-                <select
-                  value={uploadFolder}
-                  onChange={(e) => setUploadFolder(e.target.value)}
-                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
-                >
-                  <option value="none">No Folder</option>
-                  {folders.map(folder => (
-                    <option key={folder.id} value={folder.id}>
-                      {folder.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Document title"
-                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Content</label>
-                <textarea
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  placeholder="Paste text content here..."
-                  rows={8}
-                  className="w-full p-3 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:glow outline-none transition-colors resize-none font-mono text-sm"
-                />
-                <p className="text-xs text-[var(--text-muted)] mt-1">
-                  {content.length} characters
-                </p>
-                <p className="text-xs text-[var(--accent-primary)] mt-2 bg-[var(--accent-primary)]/10 px-3 py-2 rounded-lg">
-                  Tip: For best results, use clear sentences or Q&A format. Please check sample document
-                </p>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="flex-1 h-px bg-[var(--border)]"></div>
-                <span className="text-[var(--text-muted)] text-sm">or</span>
-                <div className="flex-1 h-px bg-[var(--border)]"></div>
-              </div>
-
-              <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Upload File</label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".txt"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full p-4 rounded-lg border-2 border-dashed border-[var(--border)] hover:border-[var(--accent-primary)] transition-colors text-center cursor-pointer"
-                >
-                  {fileName ? (
-                    <span className="text-[var(--accent-primary)]">{fileName}</span>
-                  ) : (
-                    <span className="text-[var(--text-muted)]">
-                      Click to upload .txt files
-                    </span>
-                  )}
-                </button>
-                <p className="text-xs text-[var(--text-muted)] mt-2">
-                  Only plain text (.txt) files are supported
-                </p>
-
-                {error && (
-                  <p className="text-red-500 text-sm">{error}</p>
-                )}
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={editingId ? handleUpdate : handleUpload}
-                    disabled={isLoading || !title.trim() || !content.trim()}
-                    className="flex-1 py-3 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors disabled:opacity-50"
-                  >
-                    {isLoading ? 'Saving...' : editingId ? 'Update Document' : 'Upload Document'}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowUploadModal(false);
-                      setEditingId(null);
-                      setTitle('');
-                      setContent('');
-                      setFileName('');
-                      setUploadFolder('none');
-                      setError('');
-                    }}
-                    className="px-6 py-3 rounded-lg border border-[var(--border)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            renderSampleFormat()
-          )}
-        </div>
-      </div>
-    );
-  }
 
   function renderDeleteModal() {
     return (
@@ -261,43 +64,36 @@ export default function UploadPage() {
     );
   }
 
-  // Get current user from localStorage
   const getCurrentUser = () => {
     const stored = localStorage.getItem('supportai_current_user');
     return stored ? JSON.parse(stored) : null;
   };
 
-  // Load folders from database
-  async function loadFolders() {
+async function loadFolders() {
     const user = getCurrentUser();
     const folderList = await getFolders(user?.id);
     setFolders(folderList);
   }
 
-   async function loadDocuments() {
-     const user = getCurrentUser();
-     const docs = await getDocumentList(user?.id);
-     setDocuments(docs);
-   }
+  async function loadDocuments() {
+    const user = getCurrentUser();
+    const docs = await getDocumentList(user?.id);
+    setDocuments(docs);
+  }
 
-   useEffect(() => {
-     loadDocuments();
-     loadFolders();
-   }, []);
+  useEffect(() => {
+    loadDocuments();
+    loadFolders();
+  }, []);
 
   async function handleCreateFolder() {
     const user = getCurrentUser();
-    if (!user) {
-      setError('Authentication required');
-      return;
-    }
+    if (!user) return;
     const result = await createFolderDB(newFolderName, '#6366f1', user.id);
     if (result.success) {
       setShowNewFolderModal(false);
       setNewFolderName('');
       loadFolders();
-    } else {
-      setError(result.error || 'Failed to create folder');
     }
   }
 
@@ -317,72 +113,22 @@ export default function UploadPage() {
     loadDocuments();
   }
 
-  async function handleUpload() {
-    if (!title.trim() || !content.trim()) {
-      setError('Please provide both title and content');
-      return;
-    }
-
+  async function handleUpload(content: string, title: string, folderId?: string) {
     const user = getCurrentUser();
-    if (!user) {
-      setError('Authentication required');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const folderId = uploadFolder && uploadFolder !== 'none' ? uploadFolder : undefined;
-      const result = await uploadDocument(content, title, user.id, folderId);
-      if (result.success && result.id) {
-        setTitle('');
-        setContent('');
-        setFileName('');
-        setUploadFolder('none');
-        setShowUploadModal(false);
-        loadDocuments();
-      } else {
-        setError(result.error || 'Upload failed');
-      }
-    } catch (err) {
-      setError('Upload failed');
-    }
-
-    setIsLoading(false);
+    if (!user) throw new Error('Authentication required');
+    const result = await uploadDocument(content, title, user.id, folderId);
+    if (!result.success || !result.id) throw new Error(result.error || 'Upload failed');
+    loadDocuments();
   }
 
-  async function handleUpdate() {
-    if (!editingId || !title.trim() || !content.trim()) return;
-
+  async function handleUpdate(content: string, title: string, folderId?: string) {
+    if (!editingId) throw new Error('No document to update');
     const user = getCurrentUser();
-    if (!user) {
-      setError('Authentication required');
-      return;
-    }
-
-    setIsLoading(true);
-    setError('');
-
-    try {
-      const folderId = uploadFolder && uploadFolder !== 'none' ? uploadFolder : undefined;
-      const result = await updateDocument(editingId, title, content, user.id, folderId);
-      if (result.success) {
-        setTitle('');
-        setContent('');
-        setFileName('');
-        setUploadFolder('none');
-        setEditingId(null);
-        setShowUploadModal(false);
-        loadDocuments();
-      } else {
-        setError(result.error || 'Update failed');
-      }
-    } catch (err) {
-      setError('Update failed');
-    }
-
-    setIsLoading(false);
+    if (!user) throw new Error('Authentication required');
+    const result = await updateDocument(editingId, title, content, user.id, folderId);
+    if (!result.success) throw new Error(result.error || 'Update failed');
+    setEditingId(null);
+    loadDocuments();
   }
 
   async function handleDelete(id: string, title: string) {
@@ -391,47 +137,24 @@ export default function UploadPage() {
     setShowDeleteModal(true);
   }
 
-   async function confirmDelete() {
-     if (!deleteTargetId) return;
-     const user = getCurrentUser();
-     if (!user) {
-       setError('Authentication required');
-       setShowDeleteModal(false);
-       return;
-     }
-await deleteDocument(deleteTargetId, user.id);
+  async function confirmDelete() {
+    if (!deleteTargetId) return;
+    const user = getCurrentUser();
+    if (!user) {
       setShowDeleteModal(false);
-      setDeleteTargetId(null);
-      loadDocuments();
+      return;
     }
+    await deleteDocument(deleteTargetId, user.id);
+    setShowDeleteModal(false);
+    setDeleteTargetId(null);
+    loadDocuments();
+  }
 
   function handleEdit(doc: Document) {
     setEditingId(doc.id);
-    setTitle(doc.title);
-    setContent(doc.content);
-    setFileName('');
-    setUploadFolder(doc.folder_id || 'none');
-    setError('');
-  }
-
-  function handleCancelEdit() {
-    setEditingId(null);
-    setTitle('');
-    setContent('');
-    setFileName('');
-  }
-
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setFileName(file.name);
-    setTitle(file.name.replace(/\.[^/.]+$/, ''));
-
-    // Only text-based files allowed
-    const reader = new FileReader();
-    reader.onload = (e) => setContent(e.target?.result as string || '');
-    reader.readAsText(file);
+    setEditingTitle(doc.title);
+    setEditingContent(doc.content);
+    setEditingFolder(doc.folder_id || 'none');
   }
 
   // Filter and sort documents
@@ -458,12 +181,6 @@ await deleteDocument(deleteTargetId, user.id);
           <button
             onClick={() => {
               setEditingId(null);
-              setTitle('');
-              setContent('');
-              setFileName('');
-              setUploadFolder('none');
-              setError('');
-              setActiveTab('upload');
               setShowUploadModal(true);
             }}
             className="px-4 py-2 rounded-lg bg-[var(--accent-primary)] text-white font-medium hover:bg-[var(--accent-hover)] transition-colors"
@@ -556,7 +273,19 @@ await deleteDocument(deleteTargetId, user.id);
         </div>
 
         {/* Upload Modal */}
-        {showUploadModal && renderUploadModal()}
+        <UploadDocumentModal
+          isOpen={showUploadModal}
+          onClose={() => {
+            setShowUploadModal(false);
+            setEditingId(null);
+          }}
+          onUpload={handleUpload}
+          folders={folders}
+          isEditing={!!editingId}
+          onUpdate={handleUpdate}
+          initialTitle={editingTitle}
+          initialContent={editingContent}
+        />
 
         {/* Delete Modal */}
         {showDeleteModal && renderDeleteModal()}
