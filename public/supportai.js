@@ -41,27 +41,35 @@
   }
 
   function init() {
-    if (document.getElementById(WIDGET_ID)) return;
+    var existing = document.getElementById(WIDGET_ID);
+    if (existing) {
+      existing.parentNode.removeChild(existing);
+    }
 
+    renderWidget();
+    
     fetchWidgetSettings();
   }
 
   function fetchWidgetSettings() {
     var userId = window.supportai_user_id;
-    var url = '/api/widget';
-    if (userId) {
-      url += '?userId=' + userId;
-    }
+    if (!userId) return;
+    
+    var url = window.location.origin + '/api/widget?userId=' + userId;
     fetch(url)
       .then(function(res) { return res.json(); })
       .then(function(data) {
         if (data && data.company_name) {
           settings = data;
+          var widget = document.getElementById(WIDGET_ID);
+          if (widget) {
+            widget.parentNode.removeChild(widget);
+            renderWidget();
+          }
         }
-        renderWidget();
       })
-      .catch(function() {
-        renderWidget();
+      .catch(function(err) {
+        console.log('SupportAI: Using default settings', err);
       });
   }
 
