@@ -40,30 +40,18 @@
     return settings.ai_bgcolor || 'rgba(255,255,255,0.1)';
   }
 
-   function init() {
-     // Support hash-based config for CSP compatibility
-     if (window.location.hash) {
-       try {
-         const params = new URLSearchParams(window.location.hash.slice(1));
-         const hashUserId = params.get('supportai_user_id');
-         const hashServerUrl = params.get('supportai_server_url');
-         if (hashUserId) window.supportai_user_id = hashUserId;
-         if (hashServerUrl) window.supportai_server_url = hashServerUrl;
-       } catch (e) {
-         console.log('SupportAI: Could not parse hash params');
-       }
-     }
-
-     var existing = document.getElementById(WIDGET_ID);
-     if (existing) {
-       existing.parentNode.removeChild(existing);
-     }
-
-     // Fetch settings first, then render widget
-     fetchWidgetSettings().then(function() {
-       renderWidget();
-     });
-   }
+  function init() {
+    // Support hash-based config for CSP compatibility
+    if (window.location.hash) {
+      try {
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        const hashUserId = params.get('supportai_user_id');
+        const hashServerUrl = params.get('supportai_server_url');
+        if (hashUserId) window.supportai_user_id = hashUserId;
+        if (hashServerUrl) window.supportai_server_url = hashServerUrl;
+      } catch (e) {
+        console.log('SupportAI: Could not parse hash params');
+      }
     }
 
     var existing = document.getElementById(WIDGET_ID);
@@ -81,58 +69,30 @@
     return window.supportai_server_url || window.location.origin;
   }
 
-   function fetchWidgetSettings() {
-     var userId = window.supportai_user_id;
-     if (!userId) return Promise.resolve();
-     
-     var url = getApiBaseUrl() + '/api/widget?userId=' + encodeURIComponent(userId) + '&t=' + Date.now();
-     return fetch(url)
-       .then(function(res) { return res.json(); })
-       .then(function(data) {
-         if (data && data.company_name) {
-           settings = data;
-         }
-       })
-       .catch(function(err) {
-         console.log('SupportAI: Settings fetch failed', err);
-       });
-   }
+  function fetchWidgetSettings() {
+    var userId = window.supportai_user_id;
+    if (!userId) {
+      return Promise.resolve();
+    }
     
     var url = getApiBaseUrl() + '/api/widget?userId=' + encodeURIComponent(userId) + '&t=' + Date.now();
-    console.log('SupportAI: Fetching settings from:', url);
-    
-    return fetch(url, {
-      method: 'GET',
-      credentials: 'omit',
-      headers: {
-        'Accept': 'application/json'
-      }
-    })
-      .then(function(res) {
-        console.log('SupportAI: Settings response status:', res.status);
-        return res.json();
-      })
+    return fetch(url)
+      .then(function(res) { return res.json(); })
       .then(function(data) {
-        console.log('SupportAI: Settings response:', data);
-        if (data && (data.company_name || data.primary_color)) {
+        if (data && data.company_name) {
           settings = data;
-          console.log('SupportAI: Settings applied', settings);
-        } else {
-          console.log('SupportAI: No valid settings in response, using defaults');
         }
       })
       .catch(function(err) {
-        console.log('SupportAI: Error fetching settings, using defaults', err);
+        console.log('SupportAI: Settings fetch failed', err);
       });
   }
 
   function renderWidget() {
-    console.log('SupportAI: Rendering widget with settings:', settings);
     var container = document.createElement('div');
     container.id = WIDGET_ID;
     container.innerHTML = getWidgetHTML();
     document.body.appendChild(container);
-
     bindEvents(container);
   }
 
@@ -143,198 +103,48 @@
     var aiBgColor = getAiBgColor();
     var userBgColor = getUserBgColor();
     var darkerHeader = adjustBrightness(headerColor, -10);
-    console.log('SupportAI: getWidgetHTML colors:', { circleColor, headerColor, aiBgColor, userBgColor });
-    // alert('Button color in HTML: ' + circleColor + '\nHeader: ' + headerColor + '\nAI bg: ' + aiBgColor);
+
     return '<style>' +
-      '#' + WIDGET_ID + ' {' +
-        'position: fixed;' +
-        'bottom: 20px;' +
-        pos +
-        'z-index: 999999;' +
-        'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;' +
-      '}' +
-      '#' + WIDGET_ID + ' * {' +
-        'box-sizing: border-box;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-toggle {' +
-        'width: 60px;' +
-        'height: 60px;' +
-        'border-radius: 50%;' +
-        'background: ' + circleColor + ' !important;' +
-        'border: none !important;' +
-        'cursor: pointer;' +
-        'box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);' +
-        'display: flex !important;' +
-        'align-items: center;' +
-        'justify-content: center;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-toggle:hover {' +
-        'transform: scale(1.05);' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-toggle svg {' +
-        'width: 28px;' +
-        'height: 28px;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-chat {' +
-        'position: absolute;' +
-        'bottom: 70px;' +
-        (settings.position === 'bottom-left' ? 'left: 0;' : 'right: 0;') +
-        'width: 380px;' +
-        'height: 500px;' +
-        'max-height: calc(100vh - 100px);' +
-        'background: linear-gradient(180deg, ' + headerColor + ' 0%, ' + darkerHeader + ' 100%) !important;' +
-        'border-radius: 16px;' +
-        'box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);' +
-        'display: none;' +
-        'flex-direction: column;' +
-        'overflow: hidden;' +
-        'border: 1px solid rgba(0,0,0,0.1);' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-chat.open {' +
-        'display: flex !important;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-header {' +
-        'padding: 16px;' +
-        'background: ' + headerColor + ' !important;' +
-        'border-bottom: 1px solid rgba(0,0,0,0.1);' +
-        'display: flex;' +
-        'align-items: center;' +
-        'gap: 12px;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-header-title {' +
-        'font-weight: 600;' +
-        'color: ' + settings.message_text_color + ' !important;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-messages {' +
-        'flex: 1;' +
-        'overflow-y: auto;' +
-        'padding: 16px;' +
-        'display: flex;' +
-        'flex-direction: column;' +
-        'gap: 12px;' +
-        'align-items: stretch;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-message {' +
-        'max-width: 85%;' +
-        'padding: 12px 16px;' +
-        'border-radius: 16px;' +
-        'font-size: 14px;' +
-        'line-height: 1.5;' +
-        'white-space: pre-wrap;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-message-user {' +
-        'align-self: flex-end;' +
-        'background: ' + userBgColor + ' !important;' +
-        'color: ' + settings.message_text_color + ' !important;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-message-assistant {' +
-        'align-self: flex-start;' +
-        'background: ' + aiBgColor + ' !important;' +
-        'color: ' + settings.message_text_color + ' !important;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-input-area {' +
-        'padding: 12px;' +
-        'background: ' + headerColor + ' !important;' +
-        'border-top: 1px solid rgba(0,0,0,0.1);' +
-        'display: flex;' +
-        'gap: 8px;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-input {' +
-        'flex: 1;' +
-        'padding: 12px 16px;' +
-        'border-radius: 24px;' +
-        'border: 1px solid rgba(255,255,255,0.2);' +
-        'background: rgba(255,255,255,0.1);' +
-        'color: ' + settings.message_text_color + ' !important;' +
-        'font-size: 14px;' +
-        'outline: none;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-input::placeholder {' +
-        'color: ' + settings.message_text_color + ' !important;' +
-        'opacity: 0.7;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-input:focus {' +
-        'border-color: ' + settings.message_text_color + ';' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-send {' +
-        'width: 44px;' +
-        'height: 44px;' +
-        'border-radius: 50%;' +
-        'background: ' + circleColor + ' !important;' +
-        'border: none !important;' +
-        'cursor: pointer;' +
-        'display: flex !important;' +
-        'align-items: center;' +
-        'justify-content: center;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-send:disabled {' +
-        'opacity: 0.5;' +
-        'cursor: not-allowed;' +
-      '}' +
-      '#' + WIDGET_ID + ' .sa-send svg {' +
-        'width: 20px;' +
-        'height: 20px;' +
-        'fill: #ffffff;' +
-      '}' +
-    '.sa-typing-dots {' +
-          'padding: 12px 16px;' +
-          'border-radius: 16px;' +
-          'background: ' + aiBgColor + ' !important;' +
-          'display: inline-flex;' +
-          'gap: 6px;' +
-          'align-items: center;' +
-          'max-width: 85%;' +
-        '}' +
-        '#supportai-widget .sa-typing-dot {' +
-          'width: 8px;' +
-          'height: 8px;' +
-          'border-radius: 50%;' +
-          'background: ' + settings.message_text_color + ' !important;' +
-          'opacity: 0.4;' +
-          'animation: sa-pulse 1.4s ease-in-out infinite;' +
-        '}' +
-        '#' + WIDGET_ID + ' .sa-typing-dot:nth-child(2) { animation-delay: 0.2s; }' +
-        '#' + WIDGET_ID + ' .sa-typing-dot:nth-child(3) { animation-delay: 0.4s; }' +
-        '@keyframes sa-pulse {' +
-          '0%, 100% { opacity: 0.4; }' +
-          '50% { opacity: 1; }' +
-        '}' +
-        '@media (max-width: 480px) {' +
-          '#' + WIDGET_ID + ' { bottom: 10px; right: 10px; }' +
-          '#' + WIDGET_ID + ' .sa-chat { width: calc(100vw - 20px); height: calc(100vh - 80px); bottom: 70px; }' +
-        '}' +
+      '#' + WIDGET_ID + '{position:fixed;bottom:20px;' + pos + 'z-index:999999;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;}' +
+      '#' + WIDGET_ID + ' *{box-sizing:border-box;}' +
+      '#' + WIDGET_ID + ' .sa-toggle{width:60px;height:60px;border-radius:50%;background:' + circleColor + ' !important;border:none !important;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex !important;align-items:center;justify-content:center;}' +
+      '#' + WIDGET_ID + ' .sa-toggle:hover{transform:scale(1.05);}' +
+      '#' + WIDGET_ID + ' .sa-toggle svg{width:28px;height:28px;}' +
+      '#' + WIDGET_ID + ' .sa-chat{position:absolute;bottom:70px;' + (settings.position === 'bottom-left' ? 'left:0;' : 'right:0;') + 'width:380px;height:500px;max-height:calc(100vh - 100px);background:linear-gradient(180deg,' + headerColor + ' 0%,' + darkerHeader + ' 100%) !important;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.5);display:none;flex-direction:column;overflow:hidden;border:1px solid rgba(0,0,0,0.1);}' +
+      '#' + WIDGET_ID + ' .sa-chat.open{display:flex !important;}' +
+      '#' + WIDGET_ID + ' .sa-header{padding:16px;background:' + headerColor + ' !important;border-bottom:1px solid rgba(0,0,0,0.1);display:flex;align-items:center;gap:12px;}' +
+      '#' + WIDGET_ID + ' .sa-header-title{font-weight:600;color:' + settings.message_text_color + ' !important;}' +
+      '#' + WIDGET_ID + ' .sa-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;align-items:stretch;}' +
+      '#' + WIDGET_ID + ' .sa-message{max-width:85%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.5;white-space:pre-wrap;}' +
+      '#' + WIDGET_ID + ' .sa-message-user{align-self:flex-end;background:' + userBgColor + ' !important;color:' + settings.message_text_color + ' !important;}' +
+      '#' + WIDGET_ID + ' .sa-message-assistant{align-self:flex-start;background:' + aiBgColor + ' !important;color:' + settings.message_text_color + ' !important;}' +
+      '#' + WIDGET_ID + ' .sa-input-area{padding:12px;background:' + headerColor + ' !important;border-top:1px solid rgba(0,0,0,0.1);display:flex;gap:8px;}' +
+      '#' + WIDGET_ID + ' .sa-input{flex:1;padding:12px 16px;border-radius:24px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.1);color:' + settings.message_text_color + ' !important;font-size:14px;outline:none;}' +
+      '#' + WIDGET_ID + ' .sa-input::placeholder{color:' + settings.message_text_color + ' !important;opacity:0.7;}' +
+      '#' + WIDGET_ID + ' .sa-input:focus{border-color:' + settings.message_text_color + ';}' +
+      '#' + WIDGET_ID + ' .sa-send{width:44px;height:44px;border-radius:50%;background:' + circleColor + ' !important;border:none !important;cursor:pointer;display:flex !important;align-items:center;justify-content:center;}' +
+      '#' + WIDGET_ID + ' .sa-send:disabled{opacity:0.5;cursor:not-allowed;}' +
+      '#' + WIDGET_ID + ' .sa-send svg{width:20px;height:20px;fill:#ffffff;}' +
+      '#' + WIDGET_ID + ' .sa-typing-dots{padding:12px 16px;border-radius:16px;background:' + aiBgColor + ' !important;display:inline-flex;gap:6px;align-items:center;max-width:85%;}' +
+      '#' + WIDGET_ID + ' .sa-typing-dot{width:8px;height:8px;border-radius:50%;background:' + settings.message_text_color + ' !important;opacity:0.4;animation:sa-pulse 1.4s ease-in-out infinite;}' +
+      '#' + WIDGET_ID + ' .sa-typing-dot:nth-child(2){animation-delay:0.2s;}' +
+      '#' + WIDGET_ID + ' .sa-typing-dot:nth-child(3){animation-delay:0.4s;}' +
+      '@keyframes sa-pulse{0%,100%{opacity:0.4;}50%{opacity:1;}}' +
+      '@media (max-width:480px){' + WIDGET_ID + '{bottom:10px;right:10px;}' + WIDGET_ID + ' .sa-chat{width:calc(100vw - 20px);height:calc(100vh - 80px);bottom:70px;}}' +
       '</style>' +
       '<button class="sa-toggle" aria-label="Open chat">' +
         '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">' +
           '<defs>' +
-            '<linearGradient id="sa-gradient" x1="0%" y1="0%" x2="100%" y2="100%">' +
-              '<stop offset="0%" stopColor="' + circleColor + '" />' +
-              '<stop offset="100%" stopColor="' + adjustBrightness(circleColor, 30) + '" />' +
-            '</linearGradient>' +
-            '<filter id="sa-glow">' +
-              '<feGaussianBlur stdDeviation="0.8" result="coloredBlur"/>' +
-              '<feMerge>' +
-                '<feMergeNode in="coloredBlur"/>' +
-                '<feMergeNode in="SourceGraphic"/>' +
-              '</feMerge>' +
-            '</filter>' +
+            '<linearGradient id="sa-gradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="' + circleColor + '"/><stop offset="100%" stopColor="' + adjustBrightness(circleColor, 30) + '"/></linearGradient>' +
+            '<filter id="sa-glow"><feGaussianBlur stdDeviation="0.8" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
           '</defs>' +
           '<path d="M8 8C8 8 8 14 8 18.5C8 22.5 10 25.5 13 25.5C13 25.5 17.5 27 17.5 27L32 32V18C32 8.5 21 4 13 4C8.5 4 5 6.5 4.5 10L8 8Z" fill="' + settings.logo_color + '"/>' +
         '</svg>' +
       '</button>' +
       '<div class="sa-chat">' +
-        '<div class="sa-header">' +
-          '<span class="sa-header-title">' + settings.company_name + ' Support AI</span>' +
-        '</div>' +
-        '<div class="sa-messages">' +
-          '<div class="sa-message sa-message-assistant">Hello! How can I help you today?</div>' +
-        '</div>' +
-        '<div class="sa-input-area">' +
-          '<input type="text" class="sa-input" placeholder="Type a message..." />' +
-          '<button class="sa-send" aria-label="Send">' +
-            '<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>' +
-          '</button>' +
-        '</div>' +
+        '<div class="sa-header"><span class="sa-header-title">' + settings.company_name + ' Support AI</span></div>' +
+        '<div class="sa-messages"><div class="sa-message sa-message-assistant">Hello! How can I help you today?</div></div>' +
+        '<div class="sa-input-area"><input type="text" class="sa-input" placeholder="Type a message..."/><button class="sa-send" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div>' +
       '</div>';
   }
 
@@ -347,15 +157,10 @@
 
     toggle.addEventListener('click', function() {
       chat.classList.toggle('open');
-      if (chat.classList.contains('open')) {
-        input.focus();
-      }
+      if (chat.classList.contains('open')) input.focus();
     });
 
-    send.addEventListener('click', function() {
-      sendMessage();
-    });
-
+    send.addEventListener('click', sendMessage);
     input.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -377,13 +182,12 @@
       messages.scrollTop = messages.scrollHeight;
       send.disabled = true;
 
-        var userMsg = message;
-        var userId = window.supportai_user_id;
-        fetch(getApiBaseUrl() + '/api/widget', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userMsg, userId: userId })
-        })
+      var userId = window.supportai_user_id;
+      fetch(getApiBaseUrl() + '/api/widget', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message, userId: userId })
+      })
       .then(function(res) { return res.json(); })
       .then(function(data) {
         messages.removeChild(typingEl);
@@ -395,9 +199,7 @@
         }
       })
       .catch(function() {
-        if (typingEl.parentNode) {
-          messages.removeChild(typingEl);
-        }
+        if (typingEl.parentNode) messages.removeChild(typingEl);
         send.disabled = false;
         addMessage('Failed to get response.', 'assistant');
       });
