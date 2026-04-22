@@ -41,51 +41,33 @@
   }
 
   function init() {
-    // Support hash-based config for CSP compatibility
-    if (window.location.hash) {
-      try {
-        const params = new URLSearchParams(window.location.hash.slice(1));
-        const hashUserId = params.get('supportai_user_id');
-        const hashServerUrl = params.get('supportai_server_url');
-        if (hashUserId) window.supportai_user_id = hashUserId;
-        if (hashServerUrl) window.supportai_server_url = hashServerUrl;
-      } catch (e) {
-        console.log('SupportAI: Could not parse hash params');
-      }
-    }
-
-    var existing = document.getElementById(WIDGET_ID);
-    if (existing) {
-      existing.parentNode.removeChild(existing);
-    }
-
-    // Fetch settings first, then render widget with correct settings
-    fetchWidgetSettings().then(function() {
-      renderWidget();
-    });
-  }
-
-  function getApiBaseUrl() {
-    return window.supportai_server_url || window.location.origin;
-  }
-
-  function fetchWidgetSettings() {
     var userId = window.supportai_user_id;
-    if (!userId) {
-      return Promise.resolve();
-    }
     
+    if (!userId) {
+      // No user ID — render with defaults immediately
+      renderWidget();
+      return;
+    }
+
+    // Fetch user settings, then render once
     var url = getApiBaseUrl() + '/api/widget?userId=' + encodeURIComponent(userId) + '&t=' + Date.now();
-    return fetch(url)
+    
+    fetch(url)
       .then(function(res) { return res.json(); })
       .then(function(data) {
         if (data && data.company_name) {
           settings = data;
         }
+        renderWidget();
       })
-      .catch(function(err) {
-        console.log('SupportAI: Settings fetch failed', err);
+      .catch(function() {
+        // On error, render with defaults
+        renderWidget();
       });
+  }
+
+  function getApiBaseUrl() {
+    return window.supportai_server_url || window.location.origin;
   }
 
   function renderWidget() {
