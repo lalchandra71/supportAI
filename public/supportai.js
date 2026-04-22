@@ -40,16 +40,29 @@
     return settings.ai_bgcolor || 'rgba(255,255,255,0.1)';
   }
 
-  function init() {
-    var existing = document.getElementById(WIDGET_ID);
-    if (existing) {
-      existing.parentNode.removeChild(existing);
-    }
+   function init() {
+     // Support hash-based config for CSP compatibility
+     if (window.location.hash) {
+       try {
+         const params = new URLSearchParams(window.location.hash.slice(1));
+         const hashUserId = params.get('supportai_user_id');
+         const hashServerUrl = params.get('supportai_server_url');
+         if (hashUserId) window.supportai_user_id = hashUserId;
+         if (hashServerUrl) window.supportai_server_url = hashServerUrl;
+       } catch (e) {
+         console.log('SupportAI: Could not parse hash params');
+       }
+     }
 
-    renderWidget();
-    
-    fetchWidgetSettings();
-  }
+     var existing = document.getElementById(WIDGET_ID);
+     if (existing) {
+       existing.parentNode.removeChild(existing);
+     }
+
+     renderWidget();
+     
+     fetchWidgetSettings();
+   }
 
   function getApiBaseUrl() {
     return window.supportai_server_url || window.location.origin;
