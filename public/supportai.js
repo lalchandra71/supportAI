@@ -110,6 +110,8 @@
   }
 
   function renderWidget() {
+    console.log('SupportAI: Rendering widget with settings:', settings);
+    alert('Rendering with primary_color: ' + settings.primary_color);
     var container = document.createElement('div');
     container.id = WIDGET_ID;
     container.innerHTML = getWidgetHTML();
