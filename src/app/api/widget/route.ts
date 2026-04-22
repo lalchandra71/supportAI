@@ -73,10 +73,10 @@ export async function POST(request: NextRequest) {
     let embedding: number[];
     let matches: { content: string; document_id: string; title: string }[];
     
-    try {
-      embedding = await createEmbedding(message);
-      matches = await matchDocuments(embedding, RAG_CONFIG.matchCount);
-    } catch {
+     try {
+       embedding = await createEmbedding(message);
+       matches = await matchDocuments(embedding, RAG_CONFIG.matchCount, userId);
+     } catch {
       return NextResponse.json({ 
         response: 'AI service not configured', 
         sources: [],
