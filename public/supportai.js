@@ -40,23 +40,30 @@
     return settings.ai_bgcolor || 'rgba(255,255,255,0.1)';
   }
 
-  function init() {
-    console.log('SupportAI: init started');
-    console.log('SupportAI: window.supportai_user_id:', window.supportai_user_id);
-    console.log('SupportAI: window.supportai_server_url:', window.supportai_server_url);
-    
-    // Support hash-based config for CSP compatibility
-    if (window.location.hash) {
-      try {
-        const params = new URLSearchParams(window.location.hash.slice(1));
-        const hashUserId = params.get('supportai_user_id');
-        const hashServerUrl = params.get('supportai_server_url');
-        if (hashUserId) window.supportai_user_id = hashUserId;
-        if (hashServerUrl) window.supportai_server_url = hashServerUrl;
-        console.log('SupportAI: Loaded from hash:', { hashUserId, hashServerUrl });
-      } catch (e) {
-        console.log('SupportAI: Could not parse hash params');
-      }
+   function init() {
+     // Support hash-based config for CSP compatibility
+     if (window.location.hash) {
+       try {
+         const params = new URLSearchParams(window.location.hash.slice(1));
+         const hashUserId = params.get('supportai_user_id');
+         const hashServerUrl = params.get('supportai_server_url');
+         if (hashUserId) window.supportai_user_id = hashUserId;
+         if (hashServerUrl) window.supportai_server_url = hashServerUrl;
+       } catch (e) {
+         console.log('SupportAI: Could not parse hash params');
+       }
+     }
+
+     var existing = document.getElementById(WIDGET_ID);
+     if (existing) {
+       existing.parentNode.removeChild(existing);
+     }
+
+     // Fetch settings first, then render widget
+     fetchWidgetSettings().then(function() {
+       renderWidget();
+     });
+   }
     }
 
     var existing = document.getElementById(WIDGET_ID);
@@ -74,12 +81,22 @@
     return window.supportai_server_url || window.location.origin;
   }
 
-  function fetchWidgetSettings() {
-    var userId = window.supportai_user_id;
-    if (!userId) {
-      console.log('SupportAI: No userId set, skipping settings fetch');
-      return Promise.resolve();
-    }
+   function fetchWidgetSettings() {
+     var userId = window.supportai_user_id;
+     if (!userId) return Promise.resolve();
+     
+     var url = getApiBaseUrl() + '/api/widget?userId=' + encodeURIComponent(userId) + '&t=' + Date.now();
+     return fetch(url)
+       .then(function(res) { return res.json(); })
+       .then(function(data) {
+         if (data && data.company_name) {
+           settings = data;
+         }
+       })
+       .catch(function(err) {
+         console.log('SupportAI: Settings fetch failed', err);
+       });
+   }
     
     var url = getApiBaseUrl() + '/api/widget?userId=' + encodeURIComponent(userId) + '&t=' + Date.now();
     console.log('SupportAI: Fetching settings from:', url);
@@ -111,7 +128,6 @@
 
   function renderWidget() {
     console.log('SupportAI: Rendering widget with settings:', settings);
-    alert('Rendering with primary_color: ' + settings.primary_color);
     var container = document.createElement('div');
     container.id = WIDGET_ID;
     container.innerHTML = getWidgetHTML();
@@ -169,7 +185,7 @@
         'background: linear-gradient(180deg, ' + headerColor + ' 0%, ' + darkerHeader + ' 100%) !important;' +
         'border-radius: 16px;' +
         'box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);' +
-        'display: none;'' +
+        'display: none;' +
         'flex-direction: column;' +
         'overflow: hidden;' +
         'border: 1px solid rgba(0,0,0,0.1);' +
@@ -361,14 +377,13 @@
       messages.scrollTop = messages.scrollHeight;
       send.disabled = true;
 
-      var userMsg = message;
-      var userId = window.supportai_user_id;
-      console.log('SupportAI: Sending message with userId:', userId);
-      fetch(getApiBaseUrl() + '/api/widget', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg, userId: userId })
-      })
+        var userMsg = message;
+        var userId = window.supportai_user_id;
+        fetch(getApiBaseUrl() + '/api/widget', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: userMsg, userId: userId })
+        })
       .then(function(res) { return res.json(); })
       .then(function(data) {
         messages.removeChild(typingEl);
