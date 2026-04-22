@@ -2,12 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase, supabaseAdmin, matchDocuments, addConversation, getWidgetSettings } from '@/lib/supabase';
 import { createEmbedding, createChatCompletion, RAG_CONFIG } from '@/lib/openai';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { headers: corsHeaders });
+}
+
 export async function GET(request: NextRequest) {
   try {
     const userId = request.nextUrl.searchParams.get('userId');
     
-    if (!userId || !supabaseAdmin || userId === 'demo-user') {
-return NextResponse.json({ 
+if (!userId || !supabaseAdmin || userId === 'demo-user') {
+      return NextResponse.json({ 
         company_name: 'Demo',
         primary_color: '#6366f1',
         header_color: '#202020',
@@ -18,7 +28,7 @@ return NextResponse.json({
         logo_color: '#ffffff',
         position: 'bottom-right',
         allowed_domains: ''
-      });
+      }, { headers: corsHeaders });
     }
     
     const settings = await getWidgetSettings(userId);
@@ -41,10 +51,10 @@ return NextResponse.json({
       logo_color: settings.logo_color,
       position: settings.position,
       allowed_domains: settings.allowed_domains,
-    });
+    }, { headers: corsHeaders });
   } catch (error) {
     console.error('Widget settings API error:', error);
-    return NextResponse.json({ error: 'Failed to get settings' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to get settings' }, { status: 500, headers: corsHeaders });
   }
 }
 
@@ -53,11 +63,11 @@ export async function POST(request: NextRequest) {
     const { message, history, userId } = await request.json();
 
     if (!message) {
-      return NextResponse.json({ error: 'Message required' }, { status: 400 });
+      return NextResponse.json({ error: 'Message required' }, { status: 400, headers: corsHeaders });
     }
 
     if (!supabase) {
-      return NextResponse.json({ error: 'Database not configured' }, { status: 500 });
+      return NextResponse.json({ error: 'Database not configured' }, { status: 500, headers: corsHeaders });
     }
 
     let embedding: number[];
@@ -71,7 +81,7 @@ export async function POST(request: NextRequest) {
         response: 'AI service not configured', 
         sources: [],
         error: 'AI not configured'
-      });
+      }, { headers: corsHeaders });
     }
 
     if (matches.length === 0) {
@@ -81,7 +91,7 @@ export async function POST(request: NextRequest) {
         await addConversation(userId, message, fallbackResponse, [], false);
       }
       
-      return NextResponse.json({ response: fallbackResponse, sources: [] });
+      return NextResponse.json({ response: fallbackResponse, sources: [] }, { headers: corsHeaders });
     }
 
     const context = matches
@@ -107,9 +117,9 @@ export async function POST(request: NextRequest) {
       await addConversation(userId, message, response, sources, isResolved);
     }
 
-    return NextResponse.json({ response, sources });
+    return NextResponse.json({ response, sources }, { headers: corsHeaders });
   } catch (error) {
     console.error('Widget API error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500, headers: corsHeaders });
   }
 }

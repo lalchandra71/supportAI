@@ -84,9 +84,9 @@ export default function SetupPage() {
     if (!mounted) return '';
     const origin = window.location.origin;
     if (currentUserId) {
-      return `<script>window.supportai_user_id = "${currentUserId}";</script><script src="${origin}/supportai.js"></script>`;
+      return `<script>window.supportai_user_id = "${currentUserId}";window.supportai_server_url = "${origin}";</script><script src="${origin}/supportai.js"></script>`;
     }
-    return `<script src="${origin}/supportai.js"></script>`;
+    return `<script>window.supportai_server_url = "${origin}";</script><script src="${origin}/supportai.js"></script>`;
   }, [mounted, currentUserId]);
 
   const darkerColor = useMemo(() => {

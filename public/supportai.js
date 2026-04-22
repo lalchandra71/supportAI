@@ -51,11 +51,15 @@
     fetchWidgetSettings();
   }
 
+  function getApiBaseUrl() {
+    return window.supportai_server_url || window.location.origin;
+  }
+
   function fetchWidgetSettings() {
     var userId = window.supportai_user_id;
     if (!userId) return;
     
-    var url = window.location.origin + '/api/widget?userId=' + userId;
+    var url = getApiBaseUrl() + '/api/widget?userId=' + userId;
     fetch(url)
       .then(function(res) { return res.json(); })
       .then(function(data) {
@@ -342,7 +346,7 @@
       send.disabled = true;
 
       var userMsg = message;
-      fetch('/api/widget', {
+      fetch(getApiBaseUrl() + '/api/widget', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg })
