@@ -345,12 +345,13 @@
       messages.scrollTop = messages.scrollHeight;
       send.disabled = true;
 
-      var userMsg = message;
-      fetch(getApiBaseUrl() + '/api/widget', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg })
-      })
+       var userMsg = message;
+       var userId = window.supportai_user_id;
+       fetch(getApiBaseUrl() + '/api/widget', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ message: userMsg, userId: userId })
+       })
       .then(function(res) { return res.json(); })
       .then(function(data) {
         messages.removeChild(typingEl);
