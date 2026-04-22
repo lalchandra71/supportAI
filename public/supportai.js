@@ -28,90 +28,86 @@
     return settings.header_color || '#0a0a0f';
   }
 
-   function getWidgetCircleColor() {
-     var color = settings.primary_color || '#6366f1';
-     console.log('SupportAI: getWidgetCircleColor returning:', color);
-     return color;
-   }
+  function getWidgetCircleColor() {
+    return settings.primary_color || '#6366f1';
+  }
 
   function getUserBgColor() {
     return settings.user_bgcolor || adjustBrightness(settings.primary_color, -30);
   }
 
-   function getAiBgColor() {
-     var color = settings.ai_bgcolor || 'rgba(255,255,255,0.1)';
-     console.log('SupportAI: getAiBgColor returning:', color);
-     return color;
-   }
+  function getAiBgColor() {
+    return settings.ai_bgcolor || 'rgba(255,255,255,0.1)';
+  }
 
-    function init() {
-      console.log('SupportAI: init started');
-      console.log('SupportAI: window.supportai_user_id:', window.supportai_user_id);
-      console.log('SupportAI: window.supportai_server_url:', window.supportai_server_url);
-      
-      // Support hash-based config for CSP compatibility
-      if (window.location.hash) {
-        try {
-          const params = new URLSearchParams(window.location.hash.slice(1));
-          const hashUserId = params.get('supportai_user_id');
-          const hashServerUrl = params.get('supportai_server_url');
-          if (hashUserId) window.supportai_user_id = hashUserId;
-          if (hashServerUrl) window.supportai_server_url = hashServerUrl;
-          console.log('SupportAI: Loaded from hash:', { hashUserId, hashServerUrl });
-        } catch (e) {
-          console.log('SupportAI: Could not parse hash params');
-        }
+  function init() {
+    console.log('SupportAI: init started');
+    console.log('SupportAI: window.supportai_user_id:', window.supportai_user_id);
+    console.log('SupportAI: window.supportai_server_url:', window.supportai_server_url);
+    
+    // Support hash-based config for CSP compatibility
+    if (window.location.hash) {
+      try {
+        const params = new URLSearchParams(window.location.hash.slice(1));
+        const hashUserId = params.get('supportai_user_id');
+        const hashServerUrl = params.get('supportai_server_url');
+        if (hashUserId) window.supportai_user_id = hashUserId;
+        if (hashServerUrl) window.supportai_server_url = hashServerUrl;
+        console.log('SupportAI: Loaded from hash:', { hashUserId, hashServerUrl });
+      } catch (e) {
+        console.log('SupportAI: Could not parse hash params');
       }
-
-      var existing = document.getElementById(WIDGET_ID);
-      if (existing) {
-        existing.parentNode.removeChild(existing);
-      }
-
-      // Fetch settings first, then render widget with correct settings
-      fetchWidgetSettings().then(function() {
-        renderWidget();
-      });
     }
+
+    var existing = document.getElementById(WIDGET_ID);
+    if (existing) {
+      existing.parentNode.removeChild(existing);
+    }
+
+    // Fetch settings first, then render widget with correct settings
+    fetchWidgetSettings().then(function() {
+      renderWidget();
+    });
+  }
 
   function getApiBaseUrl() {
     return window.supportai_server_url || window.location.origin;
   }
 
-   function fetchWidgetSettings() {
-     var userId = window.supportai_user_id;
-     if (!userId) {
-       console.log('SupportAI: No userId set, skipping settings fetch');
-       return Promise.resolve();
-     }
-     
-     var url = getApiBaseUrl() + '/api/widget?userId=' + encodeURIComponent(userId) + '&t=' + Date.now();
-     console.log('SupportAI: Fetching settings from:', url);
-     
-     return fetch(url, {
-       method: 'GET',
-       credentials: 'omit',
-       headers: {
-         'Accept': 'application/json'
-       }
-     })
-       .then(function(res) {
-         console.log('SupportAI: Settings response status:', res.status);
-         return res.json();
-       })
-       .then(function(data) {
-         console.log('SupportAI: Settings response:', data);
-         if (data && (data.company_name || data.primary_color)) {
-           settings = data;
-           console.log('SupportAI: Settings applied', settings);
-         } else {
-           console.log('SupportAI: No valid settings in response, using defaults');
-         }
-       })
-       .catch(function(err) {
-         console.log('SupportAI: Error fetching settings, using defaults', err);
-       });
-   }
+  function fetchWidgetSettings() {
+    var userId = window.supportai_user_id;
+    if (!userId) {
+      console.log('SupportAI: No userId set, skipping settings fetch');
+      return Promise.resolve();
+    }
+    
+    var url = getApiBaseUrl() + '/api/widget?userId=' + encodeURIComponent(userId) + '&t=' + Date.now();
+    console.log('SupportAI: Fetching settings from:', url);
+    
+    return fetch(url, {
+      method: 'GET',
+      credentials: 'omit',
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
+      .then(function(res) {
+        console.log('SupportAI: Settings response status:', res.status);
+        return res.json();
+      })
+      .then(function(data) {
+        console.log('SupportAI: Settings response:', data);
+        if (data && (data.company_name || data.primary_color)) {
+          settings = data;
+          console.log('SupportAI: Settings applied', settings);
+        } else {
+          console.log('SupportAI: No valid settings in response, using defaults');
+        }
+      })
+      .catch(function(err) {
+        console.log('SupportAI: Error fetching settings, using defaults', err);
+      });
+  }
 
   function renderWidget() {
     var container = document.createElement('div');
@@ -255,91 +251,91 @@
         'height: 20px;' +
         'fill: #ffffff;' +
       '}' +
-'.sa-typing-dots {' +
-        'padding: 12px 16px;' +
-        'border-radius: 16px;' +
-        'background: ' + getAiBgColor() + ';' +
-        'display: inline-flex;' +
-        'gap: 6px;' +
-        'align-items: center;' +
-        'max-width: 85%;' +
-      '}' +
-      '.sa-typing-dot {' +
-        'width: 6px;' +
-        'height: 6px;' +
-        'border-radius: 50%;' +
-        'background: ' + settings.message_text_color + ';' +
-        'animation: sa-pulse 1.4s ease-in-out infinite;' +
-      '}' +
-      '.sa-typing-dot:nth-child(2) { animation-delay: 0.2s; }' +
-      '.sa-typing-dot:nth-child(3) { animation-delay: 0.4s; }' +
-      '@keyframes sa-pulse {' +
-        '0%, 100% { opacity: 0.4; }' +
-        '50% { opacity: 1; }' +
-      '}' +
-      '.sa-typing.show {' +
-        'display: flex;' +
-        'flex-direction: row;' +
-        'gap: 4px;' +
-      '}' +
-      '.sa-typing-dot {' +
-        'width: 6px;' +
-        'height: 6px;' +
-        'border-radius: 50%;' +
-        'background: ' + settings.message_text_color + ';' +
-        'animation: sa-pulse 1.4s ease-in-out infinite;' +
-      '}' +
-      '.sa-typing-dot {' +
-        'width: 8px;' +
-        'height: 8px;' +
-        'border-radius: 50%;' +
-        'background: ' + settings.message_text_color + ';' +
-        'opacity: 0.4;' +
-        'animation: sa-pulse 1.4s ease-in-out infinite;' +
-      '}' +
-      '.sa-typing-dot:nth-child(2) { animation-delay: 0.2s; }' +
-      '.sa-typing-dot:nth-child(3) { animation-delay: 0.4s; }' +
-      '@keyframes sa-pulse {' +
-        '0%, 100% { opacity: 0.4; }' +
-        '50% { opacity: 1; }' +
-      '}' +
-      '@media (max-width: 480px) {' +
-        '#' + WIDGET_ID + ' { bottom: 10px; right: 10px; }' +
-        '.sa-chat { width: calc(100vw - 20px); height: calc(100vh - 80px); bottom: 70px; }' +
-      '}' +
-    '</style>' +
-    '<button class="sa-toggle" aria-label="Open chat">' +
-      '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">' +
-        '<defs>' +
-          '<linearGradient id="sa-gradient" x1="0%" y1="0%" x2="100%" y2="100%">' +
-            '<stop offset="0%" stopColor="' + getWidgetCircleColor() + '" />' +
-            '<stop offset="100%" stopColor="' + adjustBrightness(getWidgetCircleColor(), 30) + '" />' +
-          '</linearGradient>' +
-          '<filter id="sa-glow">' +
-            '<feGaussianBlur stdDeviation="0.8" result="coloredBlur"/>' +
-            '<feMerge>' +
-              '<feMergeNode in="coloredBlur"/>' +
-              '<feMergeNode in="SourceGraphic"/>' +
-            '</feMerge>' +
-          '</filter>' +
-        '</defs>' +
-        '<path d="M8 8C8 8 8 14 8 18.5C8 22.5 10 25.5 13 25.5C13 25.5 17.5 27 17.5 27L32 32V18C32 8.5 21 4 13 4C8.5 4 5 6.5 4.5 10L8 8Z" fill="' + settings.logo_color + '"/>' +
-      '</svg>' +
-    '</button>' +
-    '<div class="sa-chat">' +
-      '<div class="sa-header">' +
-        '<span class="sa-header-title">' + settings.company_name + ' Support AI</span>' +
-      '</div>' +
-      '<div class="sa-messages">' +
-        '<div class="sa-message sa-message-assistant">Hello! How can I help you today?</div>' +
-      '</div>' +
-      '<div class="sa-input-area">' +
-        '<input type="text" class="sa-input" placeholder="Type a message..." />' +
-        '<button class="sa-send" aria-label="Send">' +
-          '<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>' +
-        '</button>' +
-      '</div>' +
-    '</div>';
+    '.sa-typing-dots {' +
+          'padding: 12px 16px;' +
+          'border-radius: 16px;' +
+          'background: ' + getAiBgColor() + ';' +
+          'display: inline-flex;' +
+          'gap: 6px;' +
+          'align-items: center;' +
+          'max-width: 85%;' +
+        '}' +
+        '.sa-typing-dot {' +
+          'width: 6px;' +
+          'height: 6px;' +
+          'border-radius: 50%;' +
+          'background: ' + settings.message_text_color + ';' +
+          'animation: sa-pulse 1.4s ease-in-out infinite;' +
+        '}' +
+        '.sa-typing-dot:nth-child(2) { animation-delay: 0.2s; }' +
+        '.sa-typing-dot:nth-child(3) { animation-delay: 0.4s; }' +
+        '@keyframes sa-pulse {' +
+          '0%, 100% { opacity: 0.4; }' +
+          '50% { opacity: 1; }' +
+        '}' +
+        '.sa-typing.show {' +
+          'display: flex;' +
+          'flex-direction: row;' +
+          'gap: 4px;' +
+        '}' +
+        '.sa-typing-dot {' +
+          'width: 6px;' +
+          'height: 6px;' +
+          'border-radius: 50%;' +
+          'background: ' + settings.message_text_color + ';' +
+          'animation: sa-pulse 1.4s ease-in-out infinite;' +
+        '}' +
+        '.sa-typing-dot {' +
+          'width: 8px;' +
+          'height: 8px;' +
+          'border-radius: 50%;' +
+          'background: ' + settings.message_text_color + ';' +
+          'opacity: 0.4;' +
+          'animation: sa-pulse 1.4s ease-in-out infinite;' +
+        '}' +
+        '.sa-typing-dot:nth-child(2) { animation-delay: 0.2s; }' +
+        '.sa-typing-dot:nth-child(3) { animation-delay: 0.4s; }' +
+        '@keyframes sa-pulse {' +
+          '0%, 100% { opacity: 0.4; }' +
+          '50% { opacity: 1; }' +
+        '}' +
+        '@media (max-width: 480px) {' +
+          '#' + WIDGET_ID + ' { bottom: 10px; right: 10px; }' +
+          '.sa-chat { width: calc(100vw - 20px); height: calc(100vh - 80px); bottom: 70px; }' +
+        '}' +
+      '</style>' +
+      '<button class="sa-toggle" aria-label="Open chat">' +
+        '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">' +
+          '<defs>' +
+            '<linearGradient id="sa-gradient" x1="0%" y1="0%" x2="100%" y2="100%">' +
+              '<stop offset="0%" stopColor="' + getWidgetCircleColor() + '" />' +
+              '<stop offset="100%" stopColor="' + adjustBrightness(getWidgetCircleColor(), 30) + '" />' +
+            '</linearGradient>' +
+            '<filter id="sa-glow">' +
+              '<feGaussianBlur stdDeviation="0.8" result="coloredBlur"/>' +
+              '<feMerge>' +
+                '<feMergeNode in="coloredBlur"/>' +
+                '<feMergeNode in="SourceGraphic"/>' +
+              '</feMerge>' +
+            '</filter>' +
+          '</defs>' +
+          '<path d="M8 8C8 8 8 14 8 18.5C8 22.5 10 25.5 13 25.5C13 25.5 17.5 27 17.5 27L32 32V18C32 8.5 21 4 13 4C8.5 4 5 6.5 4.5 10L8 8Z" fill="' + settings.logo_color + '"/>' +
+        '</svg>' +
+      '</button>' +
+      '<div class="sa-chat">' +
+        '<div class="sa-header">' +
+          '<span class="sa-header-title">' + settings.company_name + ' Support AI</span>' +
+        '</div>' +
+        '<div class="sa-messages">' +
+          '<div class="sa-message sa-message-assistant">Hello! How can I help you today?</div>' +
+        '</div>' +
+        '<div class="sa-input-area">' +
+          '<input type="text" class="sa-input" placeholder="Type a message..." />' +
+          '<button class="sa-send" aria-label="Send">' +
+            '<svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>' +
+          '</button>' +
+        '</div>' +
+      '</div>';
   }
 
   function bindEvents(container) {
@@ -367,28 +363,28 @@
       }
     });
 
-     function sendMessage() {
-       var message = input.value.trim();
-       if (!message) return;
+    function sendMessage() {
+      var message = input.value.trim();
+      if (!message) return;
 
-       addMessage(message, 'user');
-       input.value = '';
-       
-       var typingEl = document.createElement('div');
-       typingEl.className = 'sa-message sa-message-assistant sa-typing-dots';
-       typingEl.innerHTML = '<span class="sa-typing-dot"></span><span class="sa-typing-dot"></span><span class="sa-typing-dot"></span>';
-       messages.appendChild(typingEl);
-       messages.scrollTop = messages.scrollHeight;
-       send.disabled = true;
+      addMessage(message, 'user');
+      input.value = '';
+      
+      var typingEl = document.createElement('div');
+      typingEl.className = 'sa-message sa-message-assistant sa-typing-dots';
+      typingEl.innerHTML = '<span class="sa-typing-dot"></span><span class="sa-typing-dot"></span><span class="sa-typing-dot"></span>';
+      messages.appendChild(typingEl);
+      messages.scrollTop = messages.scrollHeight;
+      send.disabled = true;
 
-        var userMsg = message;
-        var userId = window.supportai_user_id;
-        console.log('SupportAI: Sending message with userId:', userId);
-        fetch(getApiBaseUrl() + '/api/widget', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userMsg, userId: userId })
-        })
+      var userMsg = message;
+      var userId = window.supportai_user_id;
+      console.log('SupportAI: Sending message with userId:', userId);
+      fetch(getApiBaseUrl() + '/api/widget', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg, userId: userId })
+      })
       .then(function(res) { return res.json(); })
       .then(function(data) {
         messages.removeChild(typingEl);
