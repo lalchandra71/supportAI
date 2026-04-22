@@ -122,6 +122,13 @@
 
   function getWidgetHTML() {
     var pos = settings.position === 'bottom-left' ? 'left: 20px;' : 'right: 20px;';
+    var circleColor = getWidgetCircleColor();
+    var headerColor = getHeaderColor();
+    var aiBgColor = getAiBgColor();
+    var userBgColor = getUserBgColor();
+    var darkerHeader = adjustBrightness(headerColor, -10);
+    console.log('SupportAI: getWidgetHTML colors:', { circleColor, headerColor, aiBgColor, userBgColor });
+    // alert('Button color in HTML: ' + circleColor + '\nHeader: ' + headerColor + '\nAI bg: ' + aiBgColor);
     return '<style>' +
       '#' + WIDGET_ID + ' {' +
         'position: fixed;' +
@@ -133,56 +140,56 @@
       '#' + WIDGET_ID + ' * {' +
         'box-sizing: border-box;' +
       '}' +
-      '.sa-toggle {' +
+      '#' + WIDGET_ID + ' .sa-toggle {' +
         'width: 60px;' +
         'height: 60px;' +
         'border-radius: 50%;' +
-        'background: ' + getWidgetCircleColor() + ';' +
-        'border: none;' +
+        'background: ' + circleColor + ' !important;' +
+        'border: none !important;' +
         'cursor: pointer;' +
         'box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);' +
-        'display: flex;' +
+        'display: flex !important;' +
         'align-items: center;' +
         'justify-content: center;' +
       '}' +
-      '.sa-toggle:hover {' +
+      '#' + WIDGET_ID + ' .sa-toggle:hover {' +
         'transform: scale(1.05);' +
       '}' +
-      '.sa-toggle svg {' +
+      '#' + WIDGET_ID + ' .sa-toggle svg {' +
         'width: 28px;' +
         'height: 28px;' +
       '}' +
-      '.sa-chat {' +
+      '#' + WIDGET_ID + ' .sa-chat {' +
         'position: absolute;' +
         'bottom: 70px;' +
         (settings.position === 'bottom-left' ? 'left: 0;' : 'right: 0;') +
         'width: 380px;' +
         'height: 500px;' +
         'max-height: calc(100vh - 100px);' +
-        'background: linear-gradient(180deg, ' + getHeaderColor() + ' 0%, ' + adjustBrightness(getHeaderColor(), -10) + ' 100%);' +
+        'background: linear-gradient(180deg, ' + headerColor + ' 0%, ' + darkerHeader + ' 100%) !important;' +
         'border-radius: 16px;' +
         'box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);' +
-        'display: none;' +
+        'display: none;'' +
         'flex-direction: column;' +
         'overflow: hidden;' +
         'border: 1px solid rgba(0,0,0,0.1);' +
       '}' +
-      '.sa-chat.open {' +
-        'display: flex;' +
+      '#' + WIDGET_ID + ' .sa-chat.open {' +
+        'display: flex !important;' +
       '}' +
-      '.sa-header {' +
+      '#' + WIDGET_ID + ' .sa-header {' +
         'padding: 16px;' +
-        'background: ' + getHeaderColor() + ';' +
+        'background: ' + headerColor + ' !important;' +
         'border-bottom: 1px solid rgba(0,0,0,0.1);' +
         'display: flex;' +
         'align-items: center;' +
         'gap: 12px;' +
       '}' +
-      '.sa-header-title {' +
+      '#' + WIDGET_ID + ' .sa-header-title {' +
         'font-weight: 600;' +
-        'color: ' + settings.message_text_color + ';' +
+        'color: ' + settings.message_text_color + ' !important;' +
       '}' +
-      '.sa-messages {' +
+      '#' + WIDGET_ID + ' .sa-messages {' +
         'flex: 1;' +
         'overflow-y: auto;' +
         'padding: 16px;' +
@@ -191,7 +198,7 @@
         'gap: 12px;' +
         'align-items: stretch;' +
       '}' +
-      '.sa-message {' +
+      '#' + WIDGET_ID + ' .sa-message {' +
         'max-width: 85%;' +
         'padding: 12px 16px;' +
         'border-radius: 16px;' +
@@ -199,56 +206,56 @@
         'line-height: 1.5;' +
         'white-space: pre-wrap;' +
       '}' +
-      '.sa-message-user {' +
+      '#' + WIDGET_ID + ' .sa-message-user {' +
         'align-self: flex-end;' +
-        'background: ' + getUserBgColor() + ';' +
-        'color: ' + settings.message_text_color + ';' +
+        'background: ' + userBgColor + ' !important;' +
+        'color: ' + settings.message_text_color + ' !important;' +
       '}' +
-      '.sa-message-assistant {' +
+      '#' + WIDGET_ID + ' .sa-message-assistant {' +
         'align-self: flex-start;' +
-        'background: ' + getAiBgColor() + ';' +
-        'color: ' + settings.message_text_color + ';' +
+        'background: ' + aiBgColor + ' !important;' +
+        'color: ' + settings.message_text_color + ' !important;' +
       '}' +
-      '.sa-input-area {' +
+      '#' + WIDGET_ID + ' .sa-input-area {' +
         'padding: 12px;' +
-        'background: ' + getHeaderColor() + ';' +
+        'background: ' + headerColor + ' !important;' +
         'border-top: 1px solid rgba(0,0,0,0.1);' +
         'display: flex;' +
         'gap: 8px;' +
       '}' +
-      '.sa-input {' +
+      '#' + WIDGET_ID + ' .sa-input {' +
         'flex: 1;' +
         'padding: 12px 16px;' +
         'border-radius: 24px;' +
         'border: 1px solid rgba(255,255,255,0.2);' +
         'background: rgba(255,255,255,0.1);' +
-        'color: ' + settings.message_text_color + ';' +
+        'color: ' + settings.message_text_color + ' !important;' +
         'font-size: 14px;' +
         'outline: none;' +
       '}' +
-      '.sa-input::placeholder {' +
-        'color: ' + settings.message_text_color + ';' +
+      '#' + WIDGET_ID + ' .sa-input::placeholder {' +
+        'color: ' + settings.message_text_color + ' !important;' +
         'opacity: 0.7;' +
       '}' +
-      '.sa-input:focus {' +
+      '#' + WIDGET_ID + ' .sa-input:focus {' +
         'border-color: ' + settings.message_text_color + ';' +
       '}' +
-      '.sa-send {' +
+      '#' + WIDGET_ID + ' .sa-send {' +
         'width: 44px;' +
         'height: 44px;' +
         'border-radius: 50%;' +
-        'background: ' + getWidgetCircleColor() + ';' +
-        'border: none;' +
+        'background: ' + circleColor + ' !important;' +
+        'border: none !important;' +
         'cursor: pointer;' +
-        'display: flex;' +
+        'display: flex !important;' +
         'align-items: center;' +
         'justify-content: center;' +
       '}' +
-      '.sa-send:disabled {' +
+      '#' + WIDGET_ID + ' .sa-send:disabled {' +
         'opacity: 0.5;' +
         'cursor: not-allowed;' +
       '}' +
-      '.sa-send svg {' +
+      '#' + WIDGET_ID + ' .sa-send svg {' +
         'width: 20px;' +
         'height: 20px;' +
         'fill: #ffffff;' +
@@ -256,62 +263,37 @@
     '.sa-typing-dots {' +
           'padding: 12px 16px;' +
           'border-radius: 16px;' +
-          'background: ' + getAiBgColor() + ';' +
+          'background: ' + aiBgColor + ' !important;' +
           'display: inline-flex;' +
           'gap: 6px;' +
           'align-items: center;' +
           'max-width: 85%;' +
         '}' +
-        '.sa-typing-dot {' +
-          'width: 6px;' +
-          'height: 6px;' +
-          'border-radius: 50%;' +
-          'background: ' + settings.message_text_color + ';' +
-          'animation: sa-pulse 1.4s ease-in-out infinite;' +
-        '}' +
-        '.sa-typing-dot:nth-child(2) { animation-delay: 0.2s; }' +
-        '.sa-typing-dot:nth-child(3) { animation-delay: 0.4s; }' +
-        '@keyframes sa-pulse {' +
-          '0%, 100% { opacity: 0.4; }' +
-          '50% { opacity: 1; }' +
-        '}' +
-        '.sa-typing.show {' +
-          'display: flex;' +
-          'flex-direction: row;' +
-          'gap: 4px;' +
-        '}' +
-        '.sa-typing-dot {' +
-          'width: 6px;' +
-          'height: 6px;' +
-          'border-radius: 50%;' +
-          'background: ' + settings.message_text_color + ';' +
-          'animation: sa-pulse 1.4s ease-in-out infinite;' +
-        '}' +
-        '.sa-typing-dot {' +
+        '#supportai-widget .sa-typing-dot {' +
           'width: 8px;' +
           'height: 8px;' +
           'border-radius: 50%;' +
-          'background: ' + settings.message_text_color + ';' +
+          'background: ' + settings.message_text_color + ' !important;' +
           'opacity: 0.4;' +
           'animation: sa-pulse 1.4s ease-in-out infinite;' +
         '}' +
-        '.sa-typing-dot:nth-child(2) { animation-delay: 0.2s; }' +
-        '.sa-typing-dot:nth-child(3) { animation-delay: 0.4s; }' +
+        '#' + WIDGET_ID + ' .sa-typing-dot:nth-child(2) { animation-delay: 0.2s; }' +
+        '#' + WIDGET_ID + ' .sa-typing-dot:nth-child(3) { animation-delay: 0.4s; }' +
         '@keyframes sa-pulse {' +
           '0%, 100% { opacity: 0.4; }' +
           '50% { opacity: 1; }' +
         '}' +
         '@media (max-width: 480px) {' +
           '#' + WIDGET_ID + ' { bottom: 10px; right: 10px; }' +
-          '.sa-chat { width: calc(100vw - 20px); height: calc(100vh - 80px); bottom: 70px; }' +
+          '#' + WIDGET_ID + ' .sa-chat { width: calc(100vw - 20px); height: calc(100vh - 80px); bottom: 70px; }' +
         '}' +
       '</style>' +
       '<button class="sa-toggle" aria-label="Open chat">' +
         '<svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">' +
           '<defs>' +
             '<linearGradient id="sa-gradient" x1="0%" y1="0%" x2="100%" y2="100%">' +
-              '<stop offset="0%" stopColor="' + getWidgetCircleColor() + '" />' +
-              '<stop offset="100%" stopColor="' + adjustBrightness(getWidgetCircleColor(), 30) + '" />' +
+              '<stop offset="0%" stopColor="' + circleColor + '" />' +
+              '<stop offset="100%" stopColor="' + adjustBrightness(circleColor, 30) + '" />' +
             '</linearGradient>' +
             '<filter id="sa-glow">' +
               '<feGaussianBlur stdDeviation="0.8" result="coloredBlur"/>' +
