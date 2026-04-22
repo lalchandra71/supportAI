@@ -98,10 +98,10 @@ export function UploadDocumentModal({
         <div className="bg-[var(--bg-tertiary)] rounded-lg p-4">
           <h4 className="font-medium text-[var(--text-primary)] mb-2">Q and A Format</h4>
           <div className="text-sm text-[var(--text-muted)] font-mono whitespace-pre-wrap">
-Q: How do I reset my password?
-A: To reset your password, click on Forgot Password on the login page, enter your email address, and follow the instructions sent to your inbox.
-Q: What payment methods do you accept?
-A: We accept all major credit cards (Visa, MasterCard, American Express) and PayPal.
+Q: How do I reset my password?<br/>
+A: To reset your password, click on Forgot Password on the login page, enter your email address, and follow the instructions sent to your inbox.<br/>
+Q: What payment methods do you accept?<br/>
+A: We accept all major credit cards (Visa, MasterCard, American Express) and PayPal.<br/>
           </div>
         </div>
 
